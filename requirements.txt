@@ -1,1 +1,5 @@
-tripchaingame/requirements.txt
+git+https://github.com/django-nonrel/django@nonrel-1.5#egg=Django
+git+https://github.com/django-nonrel/djangotoolbox#egg=djangotoolbox
+git+https://github.com/django-nonrel/mongodb-engine#egg=pymongo
+argparse==1.2.1
+wsgiref==0.1.2
