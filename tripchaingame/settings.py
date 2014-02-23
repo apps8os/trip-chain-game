@@ -16,8 +16,8 @@ DATABASES = {
         # The following settings are not used with sqlite3:
         'USER': 'tripchainapp',
         'PASSWORD': 'ag1fJ4LA8BfZviAEmnjuiCYLXJuNN3x2d7U7',
-        'HOST': 'ds029969.mongolab.com',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': 29969,                      # Set to empty string for default.
+        'HOST': 'ds031339.mongolab.com',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': 31339,                      # Set to empty string for default.
     }
 }
 
