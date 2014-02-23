@@ -8,9 +8,18 @@ import datetime
 
 
 def trip(request):
-    if request.method != 'POST':
-        return HttpResponse(status=405)  # method not allowed
+    if request.method == 'POST':
+        return trip_post(request)
+    elif request.method == 'GET':
+        trips = [t.client_id + " " + str(t.started_at) + " " + json.dumps(t.trip) + "\n" for t in Trip.objects.all()]
 
+        return HttpResponse(trips, status=200)
+
+    return HttpResponse(status=405)  # method not allowed
+
+
+
+def trip_post(request):
     if request.META['CONTENT_TYPE'] != 'application/json':
         return HttpResponse(status=415)  # unsupported media type
 

@@ -14,10 +14,10 @@ DATABASES = {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'tripchaingame',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
-        #'USER': '',
-        #'PASSWORD': '',
-        #'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        #'PORT': '',                      # Set to empty string for default.
+        'USER': 'tripchainapp',
+        'PASSWORD': 'ag1fJ4LA8BfZviAEmnjuiCYLXJuNN3x2d7U7',
+        'HOST': 'ds029969.mongolab.com',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': 29969,                      # Set to empty string for default.
     }
 }
 
