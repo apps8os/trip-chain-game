@@ -1,6 +1,6 @@
 git+https://github.com/django-nonrel/django@nonrel-1.5#egg=Django
-djangotoolbox==0.9.2
-pymongo==2.4
+git+https://github.com/django-nonrel/djangotoolbox#egg=djangotoolbox
+git+https://github.com/django-nonrel/mongodb-engine#egg=mongodb-engine
 argparse==1.2.1
 wsgiref==0.1.2
 gunicorn==18.0
