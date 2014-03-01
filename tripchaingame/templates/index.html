@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>My map</title>
+<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+<script>
+//Options for locator
+var options = {
+  enableHighAccuracy: true,
+  timeout: 5000,
+  maximumAge: 0
+};
+
+function error(err) {
+  console.warn('ERROR(' + err.code + '): ' + err.message);
+};
+
+function getLocation()
+{
+  if (navigator.geolocation)
+    {
+    navigator.geolocation.getCurrentPosition(showPosition,error,options);
+    }
+  else{
+	console.log("Geolocation is not supported by this browser.");
+    }
+  }
+function showPosition(position)
+{
+	var lat = position.coords.latitude;
+	var lon = position.coords.longitude;
+
+	map = new OpenLayers.Map("mapdiv");
+	var mapnik = new OpenLayers.Layer.OSM();
+	map.addLayer(mapnik);
+	var lonlat = new OpenLayers.LonLat(lon, lat).transform(
+		new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+		new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator
+	);
+	var zoom = 13;
+	var markers = new OpenLayers.Layer.Markers( "Markers" );
+	map.addLayer(markers);
+	markers.addMarker(new OpenLayers.Marker(lonlat));
+	map.setCenter(lonlat, zoom);
+	
+	writeLocation(lon, lat);
+}
+function writeLocation(lon, lat){
+	var x = document.getElementById("location");
+	x.innerHTML = "Latitude: " + lat +
+  "<br>Longitude: " + lon; 
+}
+</script>
+<style>
+#mapdiv { width:350px; height:250px; }
+div.olControlAttribution { bottom:3px; }
+</style>
+</head>
+<body onload="getLocation();">
+<p id="location">My HTML page with an embedded map.</p>
+<div id="mapdiv"></div>
+</body>
+</html>
+
