@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
 
-from api.views import trip
+from api.views import *
+#from api.views import trip
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -8,7 +9,7 @@ from api.views import trip
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'tripchaingame.views.home', name='home'),
+    url(r'^$', 'api.views.home', name='home'),
     # url(r'^tripchaingame/', include('tripchaingame.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
@@ -18,4 +19,7 @@ urlpatterns = patterns('',
     # url(r'^admin/', include(admin.site.urls)),
 
     url(r'^api/trip.json', trip),
+    url(r'^home/$', home),
+    url(r'^hello/$', hello),
+    url(r'^time/$', current_datetime),
 )
