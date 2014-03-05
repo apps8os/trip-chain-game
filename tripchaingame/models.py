@@ -4,6 +4,6 @@ from djangotoolbox.fields import DictField
 
 
 class Trip(models.Model):
-    userId = models.CharField()
+    user_id = models.CharField()
     started_at = models.DateTimeField()
     trip = DictField()

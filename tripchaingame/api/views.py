@@ -30,7 +30,7 @@ def trip(request):
     if request.method == 'POST':
         return trip_post(request)
     elif request.method == 'GET':
-        trips = [t.client_id + " " + str(t.started_at) + " " + json.dumps(t.trip) + "\n" for t in Trip.objects.all()]
+        trips = [str(t.started_at) + " " + json.dumps(t.trip) + "<br>" for t in Trip.objects.all()]
 
         return HttpResponse(trips, status=200)
 
