@@ -47,7 +47,7 @@ def trip_post(request):
     datetime.datetime.fromtimestamp(started_at)
 
     db_trip = Trip.objects.create(
-        client_id=trip_json['clientId'],
+        user_id=trip_json['userId'],
         started_at=datetime.datetime.fromtimestamp(started_at),
         trip=trip_json['trip']
     )
