@@ -8,22 +8,22 @@ from ..models import Trip
 import json
 import datetime
 
-#@login_required
-def hello(request):
-    return HttpResponse("Hello world")
-
-def current_datetime(request):
-    now = datetime.datetime.now()
-    html = "<html><body>It is now %s.</body></html>" % now
-    return HttpResponse(html)
-
-def home(request):
-    #return HttpResponse('index.html')
-    #t = loader.get_template('index.html')
-    #c = RequestContext(request, {'foo': 'bar'})
-    #return HttpResponse(t.render(c),
-    #    content_type="application/xhtml+xml")
-    return render_to_response('index.html')
+# #@login_required
+# def hello(request):
+#     return HttpResponse("Hello world")
+# 
+# def current_datetime(request):
+#     now = datetime.datetime.now()
+#     html = "<html><body>It is now %s.</body></html>" % now
+#     return HttpResponse(html)
+# 
+# def home(request):
+#     #return HttpResponse('index.html')
+#     #t = loader.get_template('index.html')
+#     #c = RequestContext(request, {'foo': 'bar'})
+#     #return HttpResponse(t.render(c),
+#     #    content_type="application/xhtml+xml")
+#     return render_to_response('index.html')
 
 
 def trip(request):
