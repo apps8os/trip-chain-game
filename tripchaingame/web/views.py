@@ -8,6 +8,15 @@ from django.conf import settings
 
 import datetime
 
+from tripchaingame.models import Trip
+
+from mongoengine.django.auth import User
+from social.apps.django_app.me.models import UserSocialAuth
+
+def _uid_from_user(user):
+    sa = UserSocialAuth.objects.get(user=user)
+    return sa.uid
+
 #@login_required
 def hello(request):
     return HttpResponse("Hello world")
@@ -27,7 +36,10 @@ def home(request):
 
 @login_required
 def my_trips(request):
-    print dir(request.user)
+    uid = _uid_from_user(request.user)
+    trips = [str(t.trip) + "<br/>" for t in Trip.objects.filter(user_id=uid)]
+    return HttpResponse(trips, status=200)
+
 
 def login(request):
     context = {
