@@ -20,5 +20,9 @@ urlpatterns = patterns('',
     url(r'^home/$', home),
     url(r'^hello/$', hello),
     url(r'^time/$', current_datetime),
-    url('', include('social.apps.django_app.urls', namespace='social'))
+    url(r'^my_trips/$', my_trips),
+
+    url(r'^login/$', login),
+
+    url('', include('social.apps.django_app.urls', namespace='social')),
 )

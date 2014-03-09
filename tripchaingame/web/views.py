@@ -2,6 +2,10 @@ from django.http import Http404, HttpResponse
 from django.template import RequestContext, loader
 from django.shortcuts import render_to_response, redirect, get_object_or_404, render
 
+from django.contrib.auth.decorators import login_required
+
+from django.conf import settings
+
 import datetime
 
 #@login_required
@@ -20,3 +24,15 @@ def home(request):
     #return HttpResponse(t.render(c),
     #    content_type="application/xhtml+xml")
     return render_to_response('index.html')
+
+@login_required
+def my_trips(request):
+    print dir(request.user)
+
+def login(request):
+    context = {
+        'plus_scope': ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE),
+        'plus_id': settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+    }
+    return render(request, 'login.html',
+        context)

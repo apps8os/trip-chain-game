@@ -3,6 +3,8 @@ from django.http import Http404, HttpResponse
 from django.template import RequestContext, loader
 from django.shortcuts import render_to_response, redirect, get_object_or_404, render
 
+from django.contrib.auth.decorators import login_required
+
 from ..models import Trip
 
 import json

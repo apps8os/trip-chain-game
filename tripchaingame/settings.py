@@ -119,7 +119,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'social.backends.google.GoogleOAuth2',
+    'social.backends.google.GooglePlusAuth',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -128,10 +128,16 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID', '')
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET', '')
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ["profile"]
-SOCIAL_AUTH_GOOGLE_OAUTH2_USE_UNIQUE_USER_ID = True
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('GOOGLE_CLIENT_ID', '')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+
+SOCIAL_AUTH_GOOGLE_PLUS_KEY = SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+SOCIAL_AUTH_GOOGLE_PLUS_SECRET = SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/userinfo.email',
+                                   'https://www.googleapis.com/auth/userinfo.profile',
+                                   'https://www.googleapis.com/auth/plus.me']
+SOCIAL_AUTH_GOOGLE_PLUS_USE_UNIQUE_USER_ID = True
 
 
 
