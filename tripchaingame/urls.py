@@ -21,4 +21,7 @@ urlpatterns = patterns('',
     url(r'^hello/$', hello),
     url(r'^time/$', current_datetime),
     url(r'^view/$', view_trips),
+    url(r'^my_trips/$', my_trips),
+    url(r'^login/$', login),
+    url('', include('social.apps.django_app.urls', namespace='social')),
 )

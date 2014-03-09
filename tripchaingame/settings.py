@@ -9,6 +9,8 @@ import django
 import os.path
 import logging
 
+import mongoengine
+
 DJANGO_ROOT = os.path.dirname(os.path.realpath(django.__file__))
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 
@@ -29,6 +31,12 @@ DATABASES = {
         'PORT': int(os.environ.get('MONGOPORT', 0)) or '',                      # Set to empty string for default.
     }
 }
+
+mongoengine.connect("tripchaingame", alias='default',
+                    host=os.environ.get('MONGOHOST', ''),
+                    port=int(os.environ.get('MONGOPORT', 0)) or '',
+                    username=os.environ.get('MONGOUSER', ''),
+                    password=os.environ.get('MONGOPASS', ''))
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -110,6 +118,29 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+AUTHENTICATION_BACKENDS = (
+    'social.backends.google.GooglePlusAuth',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'social.apps.django_app.context_processors.backends',
+    'social.apps.django_app.context_processors.login_redirect',
+)
+
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('GOOGLE_CLIENT_ID', '')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+
+SOCIAL_AUTH_GOOGLE_PLUS_KEY = SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+SOCIAL_AUTH_GOOGLE_PLUS_SECRET = SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/userinfo.email',
+                                   'https://www.googleapis.com/auth/userinfo.profile',
+                                   'https://www.googleapis.com/auth/plus.me']
+SOCIAL_AUTH_GOOGLE_PLUS_USE_UNIQUE_USER_ID = True
+
+
+
 ROOT_URLCONF = 'tripchaingame.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
@@ -129,18 +160,27 @@ TEMPLATE_DIRS = (
 )
 INSTALLED_APPS = (
     'django.contrib.auth',
+    'mongoengine.django.mongo_auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'social.apps.django_app.me',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
 
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+AUTH_USER_MODEL = 'mongo_auth.MongoUser'
+
+SOCIAL_AUTH_STORAGE = 'social.apps.django_app.me.models.DjangoStorage'
+
+SESSION_ENGINE = 'mongoengine.django.sessions'
+SESSION_SERIALIZER = 'mongoengine.django.sessions.BSONSerializer'
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

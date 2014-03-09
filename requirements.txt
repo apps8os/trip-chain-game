@@ -1,6 +1,11 @@
 git+https://github.com/django-nonrel/django@nonrel-1.5#egg=Django
 git+https://github.com/django-nonrel/djangotoolbox#egg=djangotoolbox
-git+https://github.com/django-nonrel/mongodb-engine#egg=mongodb-engine
+git+https://github.com/django-nonrel/mongodb-engine#egg=django_mongodb_engine
+#git+https://github.com/django-nonrel/django-permission-backend-nonrel#egg=permission_backend_nonrel
+python-social-auth
 argparse==1.2.1
 wsgiref==0.1.2
 gunicorn==18.0
+requests
+six
+mongoengine
