@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-
+from django.conf import settings
 from web.views import *
 
 # Uncomment the next two lines to enable the admin:
@@ -22,3 +22,16 @@ urlpatterns = patterns('',
     url(r'^login/$', login),
     url('', include('social.apps.django_app.urls', namespace='social')),
 )
+
+
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
+# for development env.
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
+
+# for deployment
+if not settings.DEBUG:
+    urlpatterns += patterns('',
+        (r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
+    )

@@ -3,6 +3,29 @@
 <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
         <script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js" type="text/javascript" charset="utf-8"></script>
         <script type="text/javascript" charset="utf-8">
+        
+        //Vector visibility toggle
+        $(document).ready(function(){
+		    function walkingPoints()  
+		          {if (walking.getVisibility() == true) 
+		         {walking.setVisibility(false);}  
+		         else  
+		          {walking.setVisibility(true);}}
+		    function stillPoints()  
+		          {if (still.getVisibility() == true) 
+		         {still.setVisibility(false);}  
+		         else  
+		          {still.setVisibility(true);}}
+			function unknownPoints()  
+		          {if (unknown.getVisibility() == true) 
+		         {unknown.setVisibility(false);}  
+		         else  
+		          {unknown.setVisibility(true);}}
+		$("#still").on("change", stillPoints);
+		$("#walk").on("change", walkingPoints);
+		$("#unknown").on("change", unknownPoints);
+		});
+        
         //Options for locator
         var options = {
           enableHighAccuracy: true,
@@ -30,6 +53,10 @@
                 strokeWidth: 3,
                 strokeOpacity: 0.4,
             };
+            
+		var unknown = new OpenLayers.Layer.Vector("Unknown", {style: styleLine});
+		var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
+		var still = new OpenLayers.Layer.Vector("Still", {style: styleStill}); 
 
        var lon = 0,
             lat = 0,
@@ -86,10 +113,6 @@
                 });
                 for (var i = 0; i< featurecollection.length; i++) {
                 
-                	var unknown = new OpenLayers.Layer.Vector("Unknown", {style: styleLine});
-                	var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
-                	var still = new OpenLayers.Layer.Vector("Still", {style: styleStill});    
-                	
 	        	    map.addLayer(unknown);
 	        	    map.addLayer(walking);
 	        	    map.addLayer(still);
@@ -116,10 +139,26 @@
 					}
 				}
             };
+            //$('#key').draggable();
         </script>
         </head>
         <body onLoad="getLocation()">
             <div id="map"></div>
+            <div id="key">
+            	<span class="plaintextHeader"> Vector visibility setup </span>
+            	<span class="plaintext">
+					<input name="walk" type="checkbox" class="newstext" id="walk"  checked>
+					Walking trips
+				</span>
+				<span class="plaintext">
+					<input name="still" type="checkbox" class="newstext" id="still" checked>
+					Still
+				</span>
+				<span class="plaintext">
+					<input name="unknown" type="checkbox" class="newstext" id="unknown" checked>
+					Unknown
+				</span>
+				</div>
         </body>
 
 {% endblock %}
