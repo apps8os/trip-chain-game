@@ -13,9 +13,26 @@
         function error(err) {
           console.warn('ERROR(' + err.code + '): ' + err.message);
         };
+        
+		var styleLine = {
+                strokeColor: "red",
+                strokeWidth: 8,
+                strokeOpacity: 0.4,
+            };
+            
+       var styleWalk = {
+                strokeColor: "green",
+                strokeWidth: 5,
+                strokeOpacity: 0.4,
+            };
+       var styleStill = {
+                strokeColor: "yellow",
+                strokeWidth: 3,
+                strokeOpacity: 0.4,
+            };
 
-       var lon = 24.938378999999998,
-            lat = 60.16986300000001,
+       var lon = 0,
+            lat = 0,
             zoom = 13,
             epsg4326 = new OpenLayers.Projection('EPSG:4326'),
             epsg900913 = new OpenLayers.Projection('EPSG:900913');
@@ -35,14 +52,15 @@
         {
             lat = position.coords.latitude;
             lon = position.coords.longitude;
-	    console.log("changed pos "+lon+":"+lat);
+	    	console.log("changed pos "+lon+":"+lat);
+	    	init();
         }
             function init(){
-		getLocation();
                 var map = new OpenLayers.Map ("map", {
                     controls: [
                         new OpenLayers.Control.Navigation(),
-                        new OpenLayers.Control.Attribution()
+                        new OpenLayers.Control.Attribution(),
+                        new OpenLayers.Control.Zoom()
                     ],
                     maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
                     maxResolution: 156543.0399,
@@ -55,26 +73,52 @@
                 var osm = new OpenLayers.Layer.OSM.Mapnik('OSM');
                 map.addLayer(osm);
                 var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-		console.log("lonlat: "+lon+":"+lat);
+				console.log("lonlat: "+lon+":"+lat);
+				var markers = new OpenLayers.Layer.Markers( "Markers" );
+				map.addLayer(markers);
+				markers.addMarker(new OpenLayers.Marker(lonLat));
                 map.setCenter (lonLat, zoom);
                 
                 var featurecollection = {{trips|safe}};
-		var geojson_format = new OpenLayers.Format.GeoJSON({
+				var geojson_format = new OpenLayers.Format.GeoJSON({
                     'internalProjection': new OpenLayers.Projection("EPSG:900913"),
                     'externalProjection': new OpenLayers.Projection("EPSG:4326")
                 });
                 for (var i = 0; i< featurecollection.length; i++) {
-
-	                var vector_layer = new OpenLayers.Layer.Vector(); 
-        	        map.addLayer(vector_layer);
-			var json =featurecollection[i];
-                	vector_layer.addFeatures(geojson_format.read(json));
-			console.log(json);
-		}
+                
+                	var unknown = new OpenLayers.Layer.Vector("Unknown", {style: styleLine});
+                	var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
+                	var still = new OpenLayers.Layer.Vector("Still", {style: styleStill});    
+                	
+	        	    map.addLayer(unknown);
+	        	    map.addLayer(walking);
+	        	    map.addLayer(still);
+	        	    
+					var json =featurecollection[i];
+					
+					//console.log(json);
+					if(json.features.length > 0){
+	                	for (var j = 0; j< json.features.length; j++) {
+	                		var act = json.features;
+	                		var activity = act[j].properties.activity;
+							if(activity == "on-foot"){
+							console.log("testing walking");
+								walking.addFeatures(geojson_format.read(json));
+							} else if(activity == "still"){
+								still.addFeatures(geojson_format.read(json));
+							} else {
+								unknown.addFeatures(geojson_format.read(json));
+							}
+						}
+					} else {
+						console.log("Fucked up: "+json.features.length);
+						console.log(json);
+					}
+				}
             };
         </script>
         </head>
-        <body onload="init()">
+        <body onLoad="getLocation()">
             <div id="map"></div>
         </body>
 
