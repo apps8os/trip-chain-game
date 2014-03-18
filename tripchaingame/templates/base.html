@@ -27,12 +27,12 @@
    				margin-left: 5px;
 			}
 			
-            body {
+            /*body {
 			    margin-left: 0px;
 			    margin-top: 0px;
 			    margin-right: 0px;
 			    margin-bottom: 0px;
-			}
+			}*/
 			.mapposn {
 			    display: block;
 			    position: absolute;
@@ -41,7 +41,9 @@
 			    height: 100%;
 			    width: 100%;
 			}
-			#map { 	height: 500px;
+			#map { 	
+				height: 100%;
+				width: 100%;
 				position: relative;
 			 }
 			#key {
@@ -60,11 +62,24 @@
 			    border-radius: 20px;
 				
 			}
+			#content
+			{
+			    position: absolute;
+			    top: 0;
+			    right: 0;
+			    bottom: 0;
+			    left: 0;
+			    background-color: #DFD4CA;
+			    //padding-left: 260px;
+			}
 
         </style>
         {% load staticfiles %}
         <link href="{{STATIC_URL}}map.css" rel="stylesheet"/>
         <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+		<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+		<link rel="stylesheet" href="/resources/demos/style.css">
 
     <title>{% block title %}Tripchaingame{% endblock %}</title>
 </head>

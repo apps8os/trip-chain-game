@@ -4,6 +4,10 @@
         <script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js" type="text/javascript" charset="utf-8"></script>
         <script type="text/javascript" charset="utf-8">
         
+        $(function() {
+			$( "#key" ).draggable();
+		});
+        
         //Vector visibility toggle
         $(document).ready(function(){
 		    function walkingPoints()  
@@ -86,7 +90,11 @@
             function init(){
                 var map = new OpenLayers.Map ("map", {
                     controls: [
-                        new OpenLayers.Control.Navigation(),
+                        new OpenLayers.Control.Navigation({
+				            dragPanOptions: {
+				                enableKinetic: true
+				            }
+				        }),
                         new OpenLayers.Control.Attribution(),
                         new OpenLayers.Control.Zoom()
                     ],
@@ -97,7 +105,7 @@
                     projection: new OpenLayers.Projection("EPSG:900913"),
                     displayProjection: new OpenLayers.Projection("EPSG:4326")
                 });
-                
+                map.addControl(new OpenLayers.Control.LayerSwitcher());
                 var osm = new OpenLayers.Layer.OSM.Mapnik('OSM');
                 map.addLayer(osm);
                 var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
@@ -144,22 +152,24 @@
         </script>
         </head>
         <body onLoad="getLocation()">
-            <div id="map"></div>
-            <div id="key">
-            	<span class="plaintextHeader"> Vector visibility setup </span>
-            	<span class="plaintext">
-					<input name="walk" type="checkbox" class="newstext" id="walk"  checked>
-					Walking trips
-				</span>
-				<span class="plaintext">
-					<input name="still" type="checkbox" class="newstext" id="still" checked>
-					Still
-				</span>
-				<span class="plaintext">
-					<input name="unknown" type="checkbox" class="newstext" id="unknown" checked>
-					Unknown
-				</span>
+        	<div id="content">
+	            <div id="map"></div>
+	            <div id="key">
+	            	<span class="plaintextHeader"> Vector visibility setup </span>
+	            	<span class="plaintext">
+						<input name="walk" type="checkbox" class="newstext" id="walk"  checked>
+						Walking trips
+					</span>
+					<span class="plaintext">
+						<input name="still" type="checkbox" class="newstext" id="still" checked>
+						Still
+					</span>
+					<span class="plaintext">
+						<input name="unknown" type="checkbox" class="newstext" id="unknown" checked>
+						Unknown
+					</span>
 				</div>
+			</div>
         </body>
 
 {% endblock %}
