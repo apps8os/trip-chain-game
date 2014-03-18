@@ -35,6 +35,7 @@
 
         function error(err) {
           console.warn('ERROR(' + err.code + '): ' + err.message);
+          init();
         };
         
 		var styleLine = {
@@ -58,8 +59,8 @@
 		var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
 		var still = new OpenLayers.Layer.Vector("Still", {style: styleStill}); 
 
-       var lon = 0,
-            lat = 0,
+       var lon = 24.9375,
+            lat = 60.1708,
             zoom = 13,
             epsg4326 = new OpenLayers.Projection('EPSG:4326'),
             epsg900913 = new OpenLayers.Projection('EPSG:900913');
