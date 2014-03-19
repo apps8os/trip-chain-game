@@ -181,7 +181,7 @@
 				    <input id="at" type="hidden" name="access_token" value="" />
 				    <input id="code" type="hidden" name="code" value="" />
 				</form>
-				
+				{% if usernameset|is_false %}
 				<div id="signinButton" style="padding: 0.5%;">
 				    <span class="g-signin" data-scope="{{ plus_scope }}"
 				                           data-clientid="{{ plus_id }}"
@@ -191,7 +191,7 @@
 				                           data-callback="signInCallback">
 				    </span>
 				</div>
-				{% if usernameset %}
+				{% else %}
 					Hi, {{usernameset}}!
 				{% endif %}
 				{% if user_name %}
