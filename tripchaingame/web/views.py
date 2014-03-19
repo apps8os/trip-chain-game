@@ -11,8 +11,6 @@ import json
 
 from ..models import Trip
 
-from ..util import gis
-
 from tripchaingame.models import Trip
 
 from mongoengine.django.auth import User
