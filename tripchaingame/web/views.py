@@ -4,6 +4,8 @@ from django.shortcuts import render_to_response, redirect, get_object_or_404, re
 
 from django.contrib.auth.decorators import login_required
 
+from django.contrib.auth import logout
+
 from django.conf import settings
 
 import datetime
@@ -76,3 +78,8 @@ def login(request):
     }
     return render(request, 'login.html',
         context)
+
+def logout_view(request):
+    logout(request)
+
+    return redirect('/')
