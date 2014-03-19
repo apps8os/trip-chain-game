@@ -150,7 +150,8 @@
             };
             //$('#key').draggable();
         </script>
-        
+
+        {% if user.is_authenticated %}
         <script type="text/javascript">
 	        var signInCallback = function (result) {
 		        console.log("Signincallback")
@@ -172,7 +173,8 @@
 		        s.parentNode.insertBefore(po, s);
 		    })();
 		</script>
-        
+        {% endif %}
+
         </head>
         <body onLoad="getLocation()">
         	<div id="content">
