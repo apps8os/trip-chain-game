@@ -191,6 +191,12 @@
 				                           data-callback="signInCallback">
 				    </span>
 				</div>
+				{% if usernameset %}
+					Hi, {{usernameset}}!
+				{% endif %}
+				{% if user_name %}
+					Hi, {{user_name}}!
+				{% endif %}
         	</div>
 	            <div id="map"></div>
 	            <div id="key">

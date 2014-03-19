@@ -28,8 +28,12 @@ def home(request):
 def view_trips(request):
     context = {}
     context['trips'] = []
+    context['plus_scope'] = ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
+    context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+    
     if request.user.is_authenticated():
         uid = _uid_from_user(request.user)
+        context['user_name'] = request.user.username
         context['trips'] = ""+json.dumps([t.trip for t in Trip.objects.filter(user_id=uid)])
     else:
         context['trips'] = ""+json.dumps([t.trip for t in Trip.objects.all()])
