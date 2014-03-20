@@ -25,9 +25,15 @@
 		         {unknown.setVisibility(false);}  
 		         else  
 		          {unknown.setVisibility(true);}}
+		    function vehiclePoints()  
+		          {if (vehicle.getVisibility() == true) 
+		         {vehicle.setVisibility(false);}  
+		         else  
+		          {vehicle.setVisibility(true);}}
 		$("#still").on("change", stillPoints);
 		$("#walk").on("change", walkingPoints);
 		$("#unknown").on("change", unknownPoints);
+		$("#vehicle").on("change", vehiclePoints);
 		});
         
         //Options for locator
@@ -41,6 +47,12 @@
           console.warn('ERROR(' + err.code + '): ' + err.message);
           init();
         };
+        
+        var vehicleLine = {
+                strokeColor: "blue",
+                strokeWidth: 8,
+                strokeOpacity: 0.4,
+            };
         
 		var styleLine = {
                 strokeColor: "red",
@@ -59,6 +71,7 @@
                 strokeOpacity: 0.4,
             };
             
+		var vehicle = new OpenLayers.Layer.Vector("Vehicle", {style: vehicleLine});
 		var unknown = new OpenLayers.Layer.Vector("Unknown", {style: styleLine});
 		var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
 		var still = new OpenLayers.Layer.Vector("Still", {style: styleStill}); 
@@ -122,6 +135,7 @@
                 });
                 for (var i = 0; i< featurecollection.length; i++) {
                 
+	        	    map.addLayer(vehicle);
 	        	    map.addLayer(unknown);
 	        	    map.addLayer(walking);
 	        	    map.addLayer(still);
@@ -138,6 +152,8 @@
 								walking.addFeatures(geojson_format.read(json));
 							} else if(activity == "still"){
 								still.addFeatures(geojson_format.read(json));
+							} else if(activity == "vehicle"){
+								vehicle.addFeatures(geojson_format.read(json));
 							} else {
 								unknown.addFeatures(geojson_format.read(json));
 							}
@@ -216,6 +232,10 @@
 					<span class="plaintext">
 						<input name="unknown" type="checkbox" class="newstext" id="unknown" checked>
 						Unknown
+					</span>
+					<span class="plaintext">
+						<input name="vehicle" type="checkbox" class="newstext" id="vehicle" checked>
+						Vehicle
 					</span>
 				</div>
 			</div>
