@@ -10,53 +10,34 @@ from ..models import Trip
 import json
 import datetime
 
-# #@login_required
-# def hello(request):
-#     return HttpResponse("Hello world")
-# 
-# def current_datetime(request):
-#     now = datetime.datetime.now()
-#     html = "<html><body>It is now %s.</body></html>" % now
-#     return HttpResponse(html)
-# 
-# def home(request):
-#     #return HttpResponse('index.html')
-#     #t = loader.get_template('index.html')
-#     #c = RequestContext(request, {'foo': 'bar'})
-#     #return HttpResponse(t.render(c),
-#     #    content_type="application/xhtml+xml")
-#     return render_to_response('index.html')
-
 
 def trip(request):
     if request.method == 'POST':
-        return trip_post(request)
-    elif request.method == 'GET':
-        trips = [str(t.started_at) + " " + json.dumps(t.trip) + "<br>" for t in Trip.objects.all()]
-
-        return HttpResponse(trips, status=200)
+        return _trip_post(request)
 
     return HttpResponse(status=405)  # method not allowed
 
 
 
-def trip_post(request):
+def _trip_post(request):
     if request.META['CONTENT_TYPE'] != 'application/json':
         return HttpResponse(status=415)  # unsupported media type
 
     trip_json = json.loads(request.body)
-    started_at = int(float(trip_json['startedAt'])/1000)
-    datetime.datetime.fromtimestamp(started_at)
+
+    started_at_s = int(float(trip_json['startedAt'])/1000)
+    started_at = datetime.datetime.fromtimestamp(started_at_s)
+
+    client_version = trip_json.get('clientVersion', "0.3")
 
     db_trip = Trip.objects.create(
         user_id=trip_json['userId'],
-        started_at=datetime.datetime.fromtimestamp(started_at),
-        trip=trip_json['trip']
+        started_at=started_at,
+        trip=trip_json['trip'],
+        client_version=client_version,
+        created_at=datetime.datetime.now()
     )
 
     db_trip.save()
-
-    for e in Trip.objects.all():
-        print(e.started_at)
 
     return HttpResponse(status=200)

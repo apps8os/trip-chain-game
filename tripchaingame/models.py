@@ -7,3 +7,5 @@ class Trip(models.Model):
     user_id = models.CharField()
     started_at = models.DateTimeField()
     trip = DictField()
+    client_version = models.CharField()
+    created_at = models.DateTimeField()
