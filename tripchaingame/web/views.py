@@ -35,6 +35,7 @@ def view_trips(request):
     
     if request.user.is_authenticated():
         uid = _uid_from_user(request.user)
+
         context['usernameset'] = request.user.get_full_name()
         context['user_name'] = request.user.username
         context['trips'] = ""+json.dumps([t.trip for t in Trip.objects.filter(user_id=uid)])

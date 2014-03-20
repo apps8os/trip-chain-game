@@ -51,24 +51,24 @@
         var vehicleLine = {
                 strokeColor: "blue",
                 strokeWidth: 8,
-                strokeOpacity: 0.4,
+                strokeOpacity: 0.4
             };
         
 		var styleLine = {
                 strokeColor: "red",
                 strokeWidth: 8,
-                strokeOpacity: 0.4,
+                strokeOpacity: 0.4
             };
             
-       var styleWalk = {
+        var styleWalk = {
                 strokeColor: "green",
                 strokeWidth: 5,
-                strokeOpacity: 0.4,
+                strokeOpacity: 0.4
             };
-       var styleStill = {
+        var styleStill = {
                 strokeColor: "yellow",
                 strokeWidth: 3,
-                strokeOpacity: 0.4,
+                strokeOpacity: 0.4
             };
             
 		var vehicle = new OpenLayers.Layer.Vector("Vehicle", {style: vehicleLine});
@@ -76,7 +76,7 @@
 		var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
 		var still = new OpenLayers.Layer.Vector("Still", {style: styleStill}); 
 
-       var lon = 24.9375,
+        var lon = 24.9375,
             lat = 60.1708,
             zoom = 13,
             epsg4326 = new OpenLayers.Projection('EPSG:4326'),
@@ -128,94 +128,92 @@
 				markers.addMarker(new OpenLayers.Marker(lonLat));
                 map.setCenter (lonLat, zoom);
                 
-                var featurecollection = {{trips|safe}};
+                var trips = {{trips|safe}};
 				var geojson_format = new OpenLayers.Format.GeoJSON({
                     'internalProjection': new OpenLayers.Projection("EPSG:900913"),
                     'externalProjection': new OpenLayers.Projection("EPSG:4326")
                 });
-                for (var i = 0; i< featurecollection.length; i++) {
+                for (var i = 0; i < trips.length; i++) {
                 
 	        	    map.addLayer(vehicle);
 	        	    map.addLayer(unknown);
 	        	    map.addLayer(walking);
 	        	    map.addLayer(still);
 	        	    
-					var json =featurecollection[i];
-					
-					//console.log(json);
-					if(json.features.length > 0){
-	                	for (var j = 0; j< json.features.length; j++) {
-	                		var act = json.features;
-	                		var activity = act[j].properties.activity;
+					var featureCollection = trips[i];
+                    var features = featureCollection.features;
+
+					if (features.length > 0) {
+	                	for (var j = 0; j < features.length; j++) {
+	                		var feature = features[j];
+	                		var activity = feature.properties.activity;
+
 							if(activity == "on-foot"){
-							console.log("testing walking");
-								walking.addFeatures(geojson_format.read(json));
+								walking.addFeatures(geojson_format.read(feature));
 							} else if(activity == "still"){
-								still.addFeatures(geojson_format.read(json));
-							} else if(activity == "vehicle"){
-								vehicle.addFeatures(geojson_format.read(json));
+								still.addFeatures(geojson_format.read(feature));
+							} else if(activity == "in-vehicle"){
+								vehicle.addFeatures(geojson_format.read(feature));
 							} else {
-								unknown.addFeatures(geojson_format.read(json));
+								unknown.addFeatures(geojson_format.read(feature));
 							}
 						}
 					} else {
-						console.log("Fucked up: "+json.features.length);
-						console.log(json);
+						console.log("Fucked up: " + features.length);
+						console.log(featureCollection);
 					}
 				}
             };
             //$('#key').draggable();
         </script>
 
-        {% if user.is_authenticated %}
         <script type="text/javascript">
 	        var signInCallback = function (result) {
-		        console.log("Signincallback")
 		        if (result['error']) {
-		            //alert('An error happened:', JSON.stringify(result));
+
 		        } else {
 		            $('#code').attr('value', result['code']);
 		            $('#at').attr('value', result['access_token']);
 		            $('#google-plus').submit();
 		        }
 		    };
-        
-		    (function () {
-		        var po = document.createElement('script');
-		        po.type = 'text/javascript';
-		        po.async = true;
-		        po.src = 'https://plus.google.com/js/client:plusone.js?onload=start';
-		        var s = document.getElementsByTagName('script')[0];
-		        s.parentNode.insertBefore(po, s);
-		    })();
-		</script>
-        {% endif %}
 
+             (function() {
+               var po = document.createElement('script');
+               po.type = 'text/javascript'; po.async = true;
+               po.src = 'https://apis.google.com/js/client:plusone.js?onload=start';
+               var s = document.getElementsByTagName('script')[0];
+               s.parentNode.insertBefore(po, s);
+             })();
+        </script>
         </head>
         <body onLoad="getLocation()">
         	<div id="content">
         	<div id="header">
-        		<!--div id="headerContent"-->
-		        	<form id="google-plus" method="post" action="{% url 'social:complete' "google-plus" %}">{% csrf_token %}
-					    <input id="at" type="hidden" name="access_token" value="" />
-					    <input id="code" type="hidden" name="code" value="" />
-					</form>
-					{% if not usernameset %}
-					<div id="signinButton" style="padding: 0.5%;">
-					    <span class="g-signin" data-scope="{{ plus_scope }}"
-					                           data-clientid="{{ plus_id }}"
-					                           data-redirecturi="postmessage"
-					                           data-accesstype="online"
-					                           data-cookiepolicy="single_host_origin"
-					                           data-callback="signInCallback">
-					    </span>
-					</div>
-					{% else %}
-						<div class="helloText" style="color= #FFFFFF;"> Hi, {{usernameset}}! </div>
-					{% endif %}
-					{% if user_name %}
-						<div class="helloText" style="color= #FFFFFF;"> Hi, {{user_name}}! </div>
-					{% endif %}
+                <!--div id="headerContent"-->
+                <form id="google-plus" method="post" action="{% url 'social:complete' "google-plus" %}">{% csrf_token %}
+                    <input id="at" type="hidden" name="access_token" value=""/>
+                    <input id="code" type="hidden" name="code" value=""/>
+                </form>
+                {% if not user.is_authenticated %}
+                    <div id="signinButton" style="padding: 0.5%;">
+
+                               <span class="g-signin"
+                                     data-scope="{{ plus_scope }}"
+                                     data-clientid="{{ plus_id }}"
+                                     data-redirecturi="postmessage"
+                                     data-accesstype="online"
+                                     data-cookiepolicy="single_host_origin"
+                                     data-callback="signInCallback"
+                                     data-approvalprompt="force">
+                               </span>
+                    </div>
+                {% else %}
+                    <div class="helloText" style="color: #FFFFFF;"> Hi, {{ user.get_full_name }}!</div>
+                    <form action="/logout">
+                        <input type="submit" value="Logout">
+                    </form>
+                {% endif %}
 				<!--/div-->
         	</div>
 	            <div id="map"></div>
