@@ -179,7 +179,7 @@
         <body onLoad="getLocation()">
         	<div id="content">
         	<div id="header">
-        		<div id="headerContent">
+        		<!--div id="headerContent"-->
 		        	<form id="google-plus" method="post" action="{% url 'social:complete' "google-plus" %}">{% csrf_token %}
 					    <input id="at" type="hidden" name="access_token" value="" />
 					    <input id="code" type="hidden" name="code" value="" />
@@ -200,7 +200,7 @@
 					{% if user_name %}
 						<div class="helloText" style="color= #FFFFFF;"> Hi, {{user_name}}! </div>
 					{% endif %}
-				</div>
+				<!--/div-->
         	</div>
 	            <div id="map"></div>
 	            <div id="key">

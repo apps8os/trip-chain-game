@@ -52,7 +52,7 @@ def view_trips(request):
 def trips_today(request):
     uid = _uid_from_user(request.user)
     now = datetime.datetime.now()
-    yesterday = now - datetime.timedelta(days=1)
+    yesterday = now - datetime.timedelta(hours=12)
 
     trips = [t.trip for t in Trip.objects.filter(user_id=uid, started_at__range=[yesterday, now])]
     context = {'trips': json.dumps(trips)}
