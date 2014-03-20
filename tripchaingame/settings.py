@@ -188,6 +188,7 @@ SOCIAL_AUTH_STORAGE = 'social.apps.django_app.me.models.DjangoStorage'
 SESSION_ENGINE = 'mongoengine.django.sessions'
 SESSION_SERIALIZER = 'mongoengine.django.sessions.BSONSerializer'
 
+LOGIN_REDIRECT_URL = '/'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
