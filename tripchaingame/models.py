@@ -8,4 +8,4 @@ class Trip(models.Model):
     started_at = models.DateTimeField()
     trip = DictField()
     client_version = models.CharField()
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True, null=True)

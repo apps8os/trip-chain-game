@@ -34,8 +34,7 @@ def _trip_post(request):
         user_id=trip_json['userId'],
         started_at=started_at,
         trip=trip_json['trip'],
-        client_version=client_version,
-        created_at=datetime.datetime.now()
+        client_version=client_version
     )
 
     db_trip.save()
