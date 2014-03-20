@@ -159,8 +159,8 @@
 							}
 						}
 					} else {
-						console.log("Fucked up: " + features.length);
-						console.log(featureCollection);
+						//console.log("Fucked up: " + features.length);
+						//console.log(featureCollection);
 					}
 				}
             };
@@ -169,22 +169,20 @@
 
         <script type="text/javascript">
 	        var signInCallback = function (result) {
-		        if (result['error']) {
-
-		        } else {
+                if(result['g-oauth-window']) {
 		            $('#code').attr('value', result['code']);
 		            $('#at').attr('value', result['access_token']);
 		            $('#google-plus').submit();
-		        }
+                }
 		    };
 
-             (function() {
-               var po = document.createElement('script');
-               po.type = 'text/javascript'; po.async = true;
-               po.src = 'https://apis.google.com/js/client:plusone.js?onload=start';
-               var s = document.getElementsByTagName('script')[0];
-               s.parentNode.insertBefore(po, s);
-             })();
+            (function() {
+                var po = document.createElement('script');
+                po.type = 'text/javascript'; po.async = true;
+                po.src = 'https://apis.google.com/js/client:plusone.js?onload=start';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(po, s);
+            })();
         </script>
         </head>
         <body onLoad="getLocation()">
@@ -204,8 +202,7 @@
                                      data-redirecturi="postmessage"
                                      data-accesstype="online"
                                      data-cookiepolicy="single_host_origin"
-                                     data-callback="signInCallback"
-                                     data-approvalprompt="force">
+                                     data-callback="signInCallback">
                                </span>
                     </div>
                 {% else %}
