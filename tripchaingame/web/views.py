@@ -57,6 +57,7 @@ def view_trips(request):
             date2 = datetime.datetime.strptime(end_date,"%m/%d/%Y %H:%M:%S")
             
             if request.user.is_authenticated():
+                uid = _uid_from_user(request.user)
                 trips = [t.trip for t in Trip.objects.filter(user_id=uid,started_at__range=[date1, date2])]
                 context['trips'] = json.dumps(trips)
             else:
