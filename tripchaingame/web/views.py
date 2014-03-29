@@ -11,6 +11,8 @@ from django.conf import settings
 
 import datetime
 import json
+import logging
+import requests
 
 from ..models import Trip
 
@@ -18,6 +20,9 @@ from tripchaingame.models import Trip
 
 from mongoengine.django.auth import User
 from social.apps.django_app.me.models import UserSocialAuth
+
+#Logging
+logger = logging.getLogger(__name__)
 
 def _uid_from_user(user):
     sa = UserSocialAuth.objects.get(user=user)
@@ -32,6 +37,7 @@ def view_trips(request):
     end_postfix = "23:59:59"
     start_postfix = "00:00:00"
     context = {}
+    point_analysis(request)
 
     context['plus_scope'] = ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
     context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
@@ -129,6 +135,96 @@ def my_trips(request):
         return HttpResponse(trips, status=200)
 
 
+def point_analysis(request):
+    logger.warn("unfinished business...")
+    if request.user.is_authenticated():
+        uid = _uid_from_user(request.user)
+        #trips = [t.trip for t in Trip.objects.filter(user_id=uid)]
+        trips = Trip.objects.filter(user_id=uid)
+        profiled_starts, profiled_ends = trip_point_profiler(trips)
+        logger.debug(profiled_starts)
+        logger.debug(profiled_ends)
+        
+'''
+    Calcultaes how many times user has used a particular point 
+'''
+def trip_point_profiler(trips):
+    points = []
+    count_of_points = {}
+    count_of_end_points = {}
+    for t in trips:
+        trip = t.trip
+        geo_json_trips = json.dumps(trip)
+        items = json.loads(geo_json_trips)
+        for item in items["features"]:
+            tyyppi = item['geometry']['type']
+            if tyyppi == "LineString":
+                coords = item["geometry"]["coordinates"]
+                point = check_trip_points(coords)
+                if len(point) > 0:
+                    points.append(point)
+                    if point in count_of_points.keys():
+                        count = count_of_points[point]
+                        count_of_points[point] = count +1
+                    else:
+                         count_of_points[point] = 1
+                         
+                point = check_trip_points(reversed(coords))
+                if len(point) > 0:
+                    points.append(point)
+                    if point in count_of_end_points.keys():
+                        count = count_of_end_points[point]
+                        count_of_end_points[point] = count +1
+                    else:
+                         count_of_end_points[point] = 1
+             
+    return count_of_points, count_of_end_points
+'''
+    Iterates through coordinates of a trip array and fetches the first point information
+    @param trip: array of coordinates for the trip
+'''   
+def check_trip_points(trip):
+    start_point = ""
+    skip_point=False
+    for i,coordinates in enumerate(trip):
+        if isinstance(coordinates, list):
+            coords = "%s,%s" % (coordinates[0],coordinates[1])
+            if i == 0:
+                start_point=get_point_information(coords)
+                return start_point
+                    
+            logger.warn("Returning empty start point, check your coordinates %s in index %d" % (coords, i))
+                
+    return start_point
+
+'''
+    Retrieves the wanted point information for a point
+    NOTE: coordinates must be in (wgs84) format: latitude,longitude
+    @param coordinates: string coordinates
+'''
+def get_point_information(coordinates):
+    #http://api.reittiopas.fi/hsl/prod/?request=reverse_geocode&coordinate=24.8829521,60.1995236&epsg_in=wgs84&epsg_out=wgs84&user=tripchaingame&pass=nuy0Fuqu
+    result = ""
+    parameters = {'request': 'reverse_geocode', 
+                  'coordinate': coordinates, 
+                  'epsg_in':'wgs84', 
+                  'epsg_out':'wgs84',
+                  'user':'tripchaingame',
+                  'pass': 'nuy0Fuqu'}
+    json_response = requests.get("http://api.reittiopas.fi/hsl/prod/", params=parameters)
+    if json_response.status_code == requests.codes.ok:
+        r = json.dumps(json_response.json())
+        routes = json.loads(r)
+        for route in routes:
+            r = json.dumps(route["name"])
+            result = r.replace('"',"")
+    else:
+        logger.warn(json_response.status_code)
+        json_response.raise_for_status()
+        
+        
+    return result
+        
 
 def login(request):
     context = {
