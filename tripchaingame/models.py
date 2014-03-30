@@ -5,12 +5,12 @@ from djangotoolbox.fields import DictField, ListField, EmbeddedModelField
 
 class Location(models.Model):
     time = models.DateTimeField()
-    longitude = models.DecimalField()
-    latitude = models.DecimalField()
-    speed = models.DecimalField()
-    altitude = models.DecimalField()
-    bearing = models.DecimalField()
-    accuracy = models.DecimalField()
+    longitude = models.FloatField()
+    latitude = models.FloatField()
+    speed = models.FloatField()
+    altitude = models.FloatField()
+    bearing = models.FloatField()
+    accuracy = models.FloatField()
 
 
 class Activity(models.Model):
