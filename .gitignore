@@ -1,2 +1,5 @@
+debug.log
+*.project
+*.pydevproject
 .idea/
 *.pyc
