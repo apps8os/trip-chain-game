@@ -1,0 +1,47 @@
+body {
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+}
+.mapposn {
+    display: block;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+}
+#map { height: 500px; }
+#key {
+    height: 40px;
+    width: 360px;
+    position: absolute;
+    left: 50%;
+    margin-left: -150px;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: small;
+    background-color: #FFF;
+    top: 25px;
+    padding-left: 10px;
+    padding-top: 3px;
+    border: 1px solid #666;
+}
+#blue {
+    width: 85px;
+    display: inline;
+    left: 105px;
+    font-size: 2px;
+    position: absolute;
+    background-color: #36F;
+    margin-top: 7px;
+}
+#red {
+    width: 85px;
+    display: inline;
+    left: 105px;
+    font-size: 2px;
+    position: absolute;
+    background-color: #C30;
+    margin-top: 7px;
+}  
