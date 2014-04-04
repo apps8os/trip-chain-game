@@ -81,13 +81,14 @@ MEDIA_URL = ''
 #STATIC_ROOT = ''
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
 if not DEBUG:
-    STATIC_ROOT = os.path.join(PROJECT_PATH, 'statics')
+    #STATIC_ROOT = os.path.join(PROJECT_PATH, 'statics')
+    STATIC_ROOT = os.path.join(PROJECT_PATH, 'staticfiles')
 else:
     STATIC_ROOT = ''
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
-STATIC_URL = 'static/'
+STATIC_URL = os.path.join(SITE_ROOT,'/static/')#'/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -132,6 +133,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'social.apps.django_app.context_processors.backends',
     'social.apps.django_app.context_processors.login_redirect',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
 )
 
 
@@ -198,56 +201,23 @@ LOGIN_REDIRECT_URL = '/'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
     'handlers': {
-        'console':{
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'null': {
-            'level': 'DEBUG',
-            'class': 'logging.NullHandler',
-        },
         'mail_admins': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        },
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
         }
     },
     'loggers': {
-        'django': {
-            'handlers': ['null'],
-            'propagate': True,
-            'level': 'DEBUG',
-        },
         'django.request': {
             'handlers': ['mail_admins'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': True,
         },
-        'tripchaingame': {
-            'handlers': ['console', 'mail_admins', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-            #'filters': ['special']
-        }
     }
 }

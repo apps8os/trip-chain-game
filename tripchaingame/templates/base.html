@@ -7,92 +7,10 @@
 	<head>
 	<!-- project path {{ PROJECT_PATH }} -->
 	<!-- static root {{ STATIC_ROOT }} -->
+	<!-- static root {{ SITE_ROOT }} -->
 	<!-- static url {{ STATIC_URL }} -->
         <style type="text/css" media="screen">
-			.plaintext {
-				font-size: 1.1em;
-   				color: black;
-   				font-weight:bold;
-   				display: block;
-   				margin-bottom: 3px;
-   				margin-left: 7px;
-			}
 			
-			.plaintextHeader {
-				font-size: 1.3em;
-   				color: black;
-   				font-weight:bold;
-   				display: block;
-   				margin-bottom: 5px;
-   				margin-left: 5px;
-			}
-			
-			.mapposn {
-			    display: block;
-			    position: absolute;
-			    left: 0px;
-			    top: 0px;
-			    height: 100%;
-			    width: 100%;
-			}
-			#map { 	
-				height: 93%;
-				width: 100%;
-				position: relative;
-			 }
-			#key {
-			    height: 140px;
-			    width: 360px;
-			    position: absolute;
-			    left: 80%;
-			    margin-left: -150px;
-			    font-family: Verdana, Geneva, sans-serif;
-			    font-size: small;
-			    background-color:rgba(25,82,255,0.7);
-			    top: 10%;
-			    padding-left: 10px;
-			    padding-top: 3px;
-			    border: 4px solid #00a86b;
-			    border-radius: 20px;
-				
-			}
-			#header {
-			    height: 7%;
-			    width: 100%;
-			    position: relative;
-			    color= #FFFFFF;
-			    font-family: Verdana, Geneva, sans-serif;
-			    font-size: small;
-			    background-color:black;
-			    top: 0px;			
-			    //box-shadow: 5px 5px 10px #888888;
-			} 
-			#headerContent {
-			    height: 100%;
-			    width: 100%;
-			    position: absolute;
-			    color= #FFFFFF;
-			    font-family: Verdana, Geneva, sans-serif;
-			    font-size: small;
-			    background-color:black;
-			    top: 5px;			
-			    box-shadow: 5px 5px 10px #888888;
-			} 
-			#content
-			{
-			    position: absolute;
-			    top: 0;
-			    right: 0;
-			    bottom: 0;
-			    left: 0;
-			    background-color: #DFD4CA;
-			    //padding-left: 260px;
-			}
-			
-			.helloText {
-				color= #FFFFFF;
-				font-family: Verdana, Geneva, sans-serif;
-			}
 
         </style>
         {% load staticfiles %}
@@ -100,7 +18,6 @@
         <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
         <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 		<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-		<link rel="stylesheet" href="/resources/demos/style.css">
 
     <title>{% block title %}Tripchaingame{% endblock %}</title>
 </head>

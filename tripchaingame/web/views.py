@@ -11,8 +11,6 @@ from django.conf import settings
 
 import datetime
 import json
-import logging
-import requests
 
 from ..models import Trip
 
@@ -20,13 +18,10 @@ from tripchaingame.models import Trip
 
 #from tripchaingame.web.placeRecognition import PlaceRecognition
 #import PlaceRecognition
-import ..placeRecognition.PlaceRecognition
+#import ..placeRecognition.PlaceRecognition
 
 from mongoengine.django.auth import User
 from social.apps.django_app.me.models import UserSocialAuth
-
-#Logging
-logger = logging.getLogger(__name__)
 
 def _uid_from_user(user):
     sa = UserSocialAuth.objects.get(user=user)
@@ -45,10 +40,10 @@ def view_trips(request):
     context['plus_scope'] = ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
     context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
     
-    if request.user.is_authenticated():
-        places = PlaceRecognition(_uid_from_user(request.user))
-        trips = Trip.objects.filter(user_id=self.__uid)
-        places.point_analysis(request, trips)
+    #if request.user.is_authenticated():
+        #places = PlaceRecognition(_uid_from_user(request.user))
+        #trips = Trip.objects.filter(user_id=self.__uid)
+        #places.point_analysis(request, trips)
     
     if request.method == 'POST':
         start_date=""
@@ -112,7 +107,6 @@ def my_trips(request):
     else:
         trips = [str(t.trip) + "<br/>" for t in Trip.objects.all()]
         return HttpResponse(trips, status=200)
-
 
 def login(request):
     context = {
