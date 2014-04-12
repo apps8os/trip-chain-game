@@ -44,13 +44,13 @@ def view_trips(request):
     context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
     
     #uncomment to get it to work
-    #if request.user.is_authenticated():
-        #places = PlaceRecognition()
-        #trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
-        #points = places.point_analysis(trips)
-        #context['places'] = points
-        #for point in points:
-        #    logger.debug(str(point))
+    if request.user.is_authenticated():
+        places = PlaceRecognition()
+        trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
+        points = places.point_analysis(trips)
+        context['places'] = points
+        for point in points:
+            logger.debug(str(point))
     
     if request.method == 'POST':
         start_date=""

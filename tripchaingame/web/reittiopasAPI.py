@@ -6,17 +6,17 @@ from point import Point
 
 #Logging
 logger = logging.getLogger(__name__)
+import os
 
 class ReittiopasAPI:
     def __init__(self):
         #init
         self.__epsg_in='wgs84'
         self.__epsg_out='wgs84'
-        self.__user='tripchaingame'
-        self.__passwd='nuy0Fuqu'
+        self.__user=os.environ.get('REITTIOPASAPI_USER', '')
+        self.__passwd=os.environ.get('REITTIOPASAPI_PASSWD', '')
         
     def get_reverse_geocode(self, coordinates):
-        #http://api.reittiopas.fi/hsl/prod/?request=reverse_geocode&coordinate=24.8829521,60.1995236&epsg_in=wgs84&epsg_out=wgs84&user=tripchaingame&pass=nuy0Fuqu
         result = Point()
         parameters = {'request': 'reverse_geocode', 
                       'coordinate': coordinates, 

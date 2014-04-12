@@ -55,16 +55,15 @@ class PlaceRecognition:
     '''
         Calculates how many times user has used a particular point 
     '''
-
-                
     def get_first_point(self, coords):
         point = self.check_trip_points(coords)
         if len(point.get_address()) > 0:
             index = self.find_element(point)
             if index > 0:
-                self.__points[index].append()
+                self.__points[index].add_point()
+                self.__points[index].set_coords(point.pop_coords())
             else:
-                point.append()
+                point.add_point()
                 self.__points.append(point)
 
     def trip_point_profiler(self,trips):
