@@ -1,5 +1,6 @@
 # coding: utf-8
 from django.http import Http404, HttpResponse
+import logging
 from django.template import RequestContext, loader
 from django.shortcuts import render_to_response, redirect, get_object_or_404, render
 
@@ -16,12 +17,14 @@ from ..models import Trip
 
 from tripchaingame.models import Trip
 
-#from tripchaingame.web.placeRecognition import PlaceRecognition
-#import PlaceRecognition
+#from tripchaingame.PlaceRecognition import PlaceRecognition
+from placeRegocnition import PlaceRecognition
 #import ..placeRecognition.PlaceRecognition
 
 from mongoengine.django.auth import User
 from social.apps.django_app.me.models import UserSocialAuth
+
+logger = logging.getLogger(__name__)
 
 def _uid_from_user(user):
     sa = UserSocialAuth.objects.get(user=user)
@@ -40,10 +43,14 @@ def view_trips(request):
     context['plus_scope'] = ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
     context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
     
+    #uncomment to get it to work
     #if request.user.is_authenticated():
-        #places = PlaceRecognition(_uid_from_user(request.user))
-        #trips = Trip.objects.filter(user_id=self.__uid)
-        #places.point_analysis(request, trips)
+        #places = PlaceRecognition()
+        #trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
+        #points = places.point_analysis(trips)
+        #context['places'] = points
+        #for point in points:
+        #    logger.debug(str(point))
     
     if request.method == 'POST':
         start_date=""
@@ -71,8 +78,13 @@ def view_trips(request):
                 #trips = [t.trip for t in Trip.objects.all()]
                 context['trips'] = json.dumps(trips)
         else:
-            trips = [t.trip for t in Trip.objects.all()]
-            context['trips'] = json.dumps(trips)
+            if request.user.is_authenticated():
+                uid = _uid_from_user(request.user)
+                trips = [t.trip for t in Trip.objects.filter(user_id=uid)]
+                context['trips'] = json.dumps(trips)
+            else:
+                trips = [t.trip for t in Trip.objects.all()]
+                context['trips'] = json.dumps(trips)
     else:
         if request.user.is_authenticated():
             uid = _uid_from_user(request.user)

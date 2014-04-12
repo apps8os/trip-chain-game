@@ -1,4 +1,8 @@
 import logging
+from django.http import Http404, HttpResponse
+import requests
+import json
+from point import Point
 
 #Logging
 logger = logging.getLogger(__name__)
@@ -11,9 +15,9 @@ class ReittiopasAPI:
         self.__user='tripchaingame'
         self.__passwd='nuy0Fuqu'
         
-    def get_reverse_geocode(coordinates):
+    def get_reverse_geocode(self, coordinates):
         #http://api.reittiopas.fi/hsl/prod/?request=reverse_geocode&coordinate=24.8829521,60.1995236&epsg_in=wgs84&epsg_out=wgs84&user=tripchaingame&pass=nuy0Fuqu
-        result = ""
+        result = Point()
         parameters = {'request': 'reverse_geocode', 
                       'coordinate': coordinates, 
                       'epsg_in':self.__epsg_in, 
@@ -26,7 +30,8 @@ class ReittiopasAPI:
             routes = json.loads(r)
             for route in routes:
                 r = json.dumps(route["name"])
-                result = r.replace('"',"")
+                result.set_address(r.replace('"',""))
+                result.set_coords(coordinates)
         else:
             logger.warn(json_response.status_code)
             json_response.raise_for_status()
