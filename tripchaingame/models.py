@@ -27,3 +27,26 @@ class Trip(models.Model):
 
     locations = ListField(EmbeddedModelField(Location), null=True)
     activities = ListField(EmbeddedModelField(Activity), null=True)
+    
+class Point(models.Model):
+    SHOP = 'SH'
+    LIBRARY = 'LB'
+    HOME = 'HM'
+    WORK = 'WK'
+    UNKNOWN = 'UN'
+    POINT_TYPES = (
+        (SHOP, 'Shop'),
+        (LIBRARY, 'Library'),
+        (HOME, 'Home'),
+        (WORK, 'Work'),
+        (UNKNOWN, 'Unknown'),
+    )
+    user_id = models.CharField()
+    address = models.CharField()
+    visit_frequency = models.IntegerField()
+    coords = ListField()
+    type = models.CharField(max_length=2,
+                            choices=POINT_TYPES,
+                            default=UNKNOWN)
+    
+    

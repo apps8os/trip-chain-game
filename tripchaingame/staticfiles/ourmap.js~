@@ -1,4 +1,4 @@
-$(function() {
+	$(function() {
 			$( "#key" ).draggable();
 		});
         $(function() {
@@ -7,25 +7,35 @@ $(function() {
 		$(function() {
 			$( "#end_date" ).datepicker();
 		});
+
+	function handleMapClick(evt)
+	    {
+	       //var lonlat = map.getLonLatFromViewPortPx(evt.xy);
+	       // use lonlat
+		var pixel = control.handlers.feature.evt.xy;
+		var location = map.getLonLatFromPixel(pixel);
+	       alert(location);
+	    } 
+
         //Vector visibility toggle
         $(document).ready(function(){
-		    function walkingPoints()  
-		          {if (walking.getVisibility() == true) 
+		function walkingPoints()  
+		        {if (walking.getVisibility() == true) 
 		         {walking.setVisibility(false);}  
 		         else  
 		          {walking.setVisibility(true);}}
-		    function stillPoints()  
-		          {if (still.getVisibility() == true) 
+		function stillPoints()  
+		        {if (still.getVisibility() == true) 
 		         {still.setVisibility(false);}  
 		         else  
 		          {still.setVisibility(true);}}
-			function unknownPoints()  
-		          {if (unknown.getVisibility() == true) 
+		function unknownPoints()  
+		        {if (unknown.getVisibility() == true) 
 		         {unknown.setVisibility(false);}  
 		         else  
 		          {unknown.setVisibility(true);}}
-		    function vehiclePoints()  
-		          {if (vehicle.getVisibility() == true) 
+		function vehiclePoints()  
+		        {if (vehicle.getVisibility() == true) 
 		         {vehicle.setVisibility(false);}  
 		         else  
 		          {vehicle.setVisibility(true);}}
@@ -105,8 +115,55 @@ $(function() {
 	    	console.log("changed pos "+lon+":"+lat);
 	    	init();
         }
+
+	function getCoordinates(e) {
+		 // this should work
+		 var lonlat = map.getLonLatFromViewPortPx(e.xy);
+		 alert("You clicked near " + lonlat.lat + " N, " +
+				                          + lonlat.lon + " E");
+	}
             function init(){
             	//location_to_address(lat, lon)
+		var options_select = {
+		    onSelect: getCoordinates,
+		};
+
+		OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
+                defaultHandlerOptions: {
+                    'single': true,
+                    'double': false,
+                    'pixelTolerance': 0,
+                    'stopSingle': false,
+                    'stopDouble': false
+                },
+
+                initialize: function(options) {
+                    this.handlerOptions = OpenLayers.Util.extend(
+                        {}, this.defaultHandlerOptions
+                    );
+                    OpenLayers.Control.prototype.initialize.apply(
+                        this, arguments
+                    ); 
+                    this.handler = new OpenLayers.Handler.Click(
+                        this, {
+                            'click': this.trigger
+                        }, this.handlerOptions
+                    );
+                }, 
+
+                trigger: function(e) {
+		    var lonlat = map.getLonLatFromPixel(e.xy);
+		    brit = new OpenLayers.Projection("EPSG:900913");
+		    google = new OpenLayers.Projection("EPSG:4326");
+
+		    lonlatclone = lonlat.clone()
+		    lonlatclone.transform(brit, google)
+                    
+                    alert("You clicked near " + lonlatclone.lat + " N, " +
+                                              + lonlatclone.lon + " E");
+                }
+
+            	});
 
                 var map = new OpenLayers.Map ("map", {
                     controls: [
@@ -127,6 +184,8 @@ $(function() {
                 });
                 map.addControl(new OpenLayers.Control.LayerSwitcher());
                 var osm = new OpenLayers.Layer.OSM.Mapnik('OSM');
+		//var selectEt = new OpenLayers.Control.SelectFeature(osm, options_select);
+		//map.addControl(selectEt);
                 map.addLayer(osm);
                 var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 				console.log("lonlat: "+lon+":"+lat);
@@ -134,10 +193,9 @@ $(function() {
 				map.addLayer(markers);
 				markers.addMarker(new OpenLayers.Marker(lonLat));
                 map.setCenter (lonLat, zoom);
-                
-                var trips = {{trips|safe}};
-                console.log({{start_date|safe}})
-                console.log({{end_date|safe}})
+		var click = new OpenLayers.Control.Click();
+                map.addControl(click);
+                click.activate();
                 
 				var geojson_format = new OpenLayers.Format.GeoJSON({
                     'internalProjection': new OpenLayers.Projection("EPSG:900913"),
