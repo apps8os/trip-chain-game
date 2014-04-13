@@ -21,6 +21,7 @@ urlpatterns = patterns('',
     url(r'^today/$', trips_today),
     url(r'^my_trips/$', my_trips),
     url(r'^login/$', login),
+    url(r'^places/$', route_analysis_view),
     url(r'^logout/$', logout_view),
     url('', include('social.apps.django_app.urls', namespace='social')),
 )

@@ -35,15 +35,9 @@ def _uid_from_user(user):
 def home(request):
     return render_to_response('index.html')
 
-def view_trips(request):
-    end_postfix = "23:59:59"
-    start_postfix = "00:00:00"
+@login_required
+def route_analysis_view(request):
     context = {}
-
-    context['plus_scope'] = ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
-    context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
-    
-    #uncomment to get it to work
     if request.user.is_authenticated():
         places = PlaceRecognition()
         trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
@@ -51,6 +45,16 @@ def view_trips(request):
         context['places'] = points
         for point in points:
             logger.debug(str(point))
+            
+    return HttpResponse(context['places'], status=200)
+
+def view_trips(request):
+    end_postfix = "23:59:59"
+    start_postfix = "00:00:00"
+    context = {}
+
+    context['plus_scope'] = ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
+    context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
     
     if request.method == 'POST':
         start_date=""
