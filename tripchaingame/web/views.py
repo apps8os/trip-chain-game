@@ -43,8 +43,9 @@ def route_analysis_view(request):
         trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
         points = places.point_analysis(trips)
         context['places'] = points
-        for point in points:
-            logger.debug(str(point))
+        #for point in points:
+            #logger.debug(str(point))
+        logger.debug("places = %d" % len(points))
             
     return HttpResponse(context['places'], status=200)
 
