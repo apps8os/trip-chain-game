@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-
+		<!-- 
+		{{places|safe}}
+		-->
         <script type="text/javascript" charset="utf-8">
-        
         		{% if user.is_authenticated %}
-        			//var places = {{places|safe}};
+        			var places = {{places|safe}};
         			console.log({{places|safe}});
+        		{% else %}
+        			var places =0;
         		{% endif %}
                 var trips = {{trips|safe}};
                 console.log({{start_date|safe}})
@@ -46,7 +49,11 @@
                 {% endif %}
 				<!--/div-->
         	</div>
-	            <div id="map"></div>
+	            <div id="map">
+	            </div>
+	            <!--<div id="bubbles">
+	            	<p class="speech">SitePoint Rocks!</p>
+	            </div>-->
 	            <div id="key">
 	            	<span class="plaintextHeader"> Vector visibility setup </span>
 	            	<span class="plaintext">

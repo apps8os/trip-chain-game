@@ -74,7 +74,7 @@
         var bikeLine = {
                 strokeColor: "coral",
                 strokeWidth: 6,
-                strokeOpacity: 0.4
+                strokeOpacity: 0.6
             };
         
 	var styleLine = {
@@ -132,13 +132,52 @@
 	    	init();
         }
 
+        function getMarker(lon, lat)
+        {
+		var markers = new OpenLayers.Layer.Markers( "Markers" );
+		map.addLayer(markers);
+
+		var size = new OpenLayers.Size(21,25);
+		var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+		var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
+		markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat),icon));
+		markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat),icon.clone()));
+
+		return marker;
+        }
+
+	function getFeaturesForPopup(to){
+	    var toMercator = OpenLayers.Projection.transforms['EPSG:4326'][to];
+	    var features = []; 
+	    var size = places.length;   
+	    for(var i = 0; i < size; i++) {
+		place = places[i].split(";");
+		var coords = place[0]+","+place[1]
+		features[i] = new OpenLayers.Feature.Vector(
+		        toMercator(new OpenLayers.Geometry.Point(
+		            place[0], place[1])), 
+		        {
+		            Address : place[3],
+		            Coordinates : coords
+		        }, {
+		            fillColor : 'black',
+		            fillOpacity : 0.9,                    
+		            strokeColor : "#ee9900",
+		            strokeOpacity : 1,
+		            strokeWidth : 1,
+		            pointRadius : 7
+		        });
+	    }
+	    return features;
+	}
+
 	function getCoordinates(e) {
 		 // this should work
 		 var lonlat = map.getLonLatFromViewPortPx(e.xy);
 		 alert("You clicked near " + lonlat.lat + " N, " +
 				                          + lonlat.lon + " E");
 	}
-            function init(){
+        function init(){
             	//location_to_address(lat, lon)
 		var options_select = {
 		    onSelect: getCoordinates,
@@ -204,10 +243,10 @@
 		//map.addControl(selectEt);
                 map.addLayer(osm);
                 var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-				console.log("lonlat: "+lon+":"+lat);
-				var markers = new OpenLayers.Layer.Markers( "Markers" );
-				map.addLayer(markers);
-				markers.addMarker(new OpenLayers.Marker(lonLat));
+		console.log("lonlat: "+lon+":"+lat);
+		var markers = new OpenLayers.Layer.Markers( "Markers" );
+		map.addLayer(markers);
+		markers.addMarker(new OpenLayers.Marker(lonLat));
                 map.setCenter (lonLat, zoom);
 
 		//Activate click event to point a location from the map
@@ -220,11 +259,44 @@
                     'externalProjection': new OpenLayers.Projection("EPSG:4326")
                 });
 
-		//for (var j = 0: j < places.length; j++){
-		//	var loc = places[j];
-		//	console.log(loc);
-			//var point = new OpenLayers.Geometry.Point(coord.lng, coord.lat);
-		//}
+		var features = getFeaturesForPopup(map.getProjectionObject())
+
+		//Popups
+		if(features.length > 0){
+			var vector = new OpenLayers.Layer.Vector("Points",{
+			  eventListeners:{
+			    'featureselected':function(evt){
+				var feature = evt.feature;
+				var popup = new OpenLayers.Popup.FramedCloud("popup",
+				    OpenLayers.LonLat.fromString(feature.geometry.toShortString()),
+				    null,
+				    "<div style='font-size:.8em'>Coordinates: " + feature.attributes.Coordinates +"<br>Address: " + feature.attributes.Address+"</div>",
+				    null,
+				    true
+				);
+				feature.popup = popup;
+				map.addPopup(popup);
+			    },
+			    'featureunselected':function(evt){
+				var feature = evt.feature;
+				map.removePopup(feature.popup);
+				feature.popup.destroy();
+				feature.popup = null;
+			    }
+			  }
+			});
+
+			vector.addFeatures(features);
+
+			// create the select feature control
+			var selector = new OpenLayers.Control.SelectFeature(vector,{
+				hover:true,
+				autoActivate:true
+			}); 
+
+			map.addLayer(vector);
+			map.addControl(selector);
+		}
 
                 for (var i = 0; i < trips.length; i++) {
                 

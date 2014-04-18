@@ -63,11 +63,21 @@ def route_analysis_view(request):
         trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
         points = places.point_analysis(trips, uid)
         context['places'] = points
-        #for point in points:
-            #logger.debug(str(point))
         logger.debug("places = %d" % len(points))
             
     return HttpResponse(context['places'], status=200)
+
+def _get_places(uid):
+    if uid:
+        points = Point.objects.filter(user_id=uid)
+        for p in points:
+            logger.debug("Point %s (%s)" % (p.address, p))
+        
+        locations = [str(t.lon) + ";" + str(t.lat) + ";" + str(t.visit_frequency) + ";" + str(t.address) for t in points]
+        return locations
+    else:
+        return None
+    
 
 def view_trips(request):
     end_postfix = "23:59:59"
@@ -96,30 +106,34 @@ def view_trips(request):
             
             if request.user.is_authenticated():
                 uid = _uid_from_user(request.user)
-                context['places'] = [str(p.lon) +","+ str(p.lat) for p in Point.objects.filter(user_id=uid)]
+                #places = [str(p.lon) +","+ str(p.lat) for p in Point.objects.filter(user_id=uid)]
+                context['places'] = _get_places(uid)
                 trips = [t.trip for t in Trip.objects.filter(user_id=uid,started_at__range=[date1, date2])]
                 context['trips'] = json.dumps(trips)
             else:
                 trips = [t.trip for t in Trip.objects.filter(started_at__range=[date1, date2])]
-                #trips = [t.trip for t in Trip.objects.all()]
                 context['trips'] = json.dumps(trips)
+                context['places'] = ""
         else:
             if request.user.is_authenticated():
                 uid = _uid_from_user(request.user)
                 trips = [t.trip for t in Trip.objects.filter(user_id=uid)]
                 context['trips'] = json.dumps(trips)
-                context['places'] = [str(p.lon) +","+ str(p.lat) for p in Point.objects.filter(user_id=uid)]
+                context['places'] = _get_places(uid)
             else:
                 trips = [t.trip for t in Trip.objects.all()]
                 context['trips'] = json.dumps(trips)
+                context['places'] = ""
     else:
         if request.user.is_authenticated():
             uid = _uid_from_user(request.user)
             trips = [t.trip for t in Trip.objects.filter(user_id=uid)]
             context['trips'] = json.dumps(trips)
+            context['places'] = _get_places(uid)
         else:
             trips = [t.trip for t in Trip.objects.all()]
             context['trips'] = json.dumps(trips)
+            context['places'] = ""
         
     return render_to_response("view_routes.html", context, context_instance=RequestContext(request))
 
