@@ -18,7 +18,7 @@ from ..models import Trip, Point
 from tripchaingame.models import Trip
 
 #from tripchaingame.PlaceRecognition import PlaceRecognition
-from placeRegocnition import PlaceRecognition
+from placeRecognition import PlaceRecognition
 #import ..placeRecognition.PlaceRecognition
 
 from mongoengine.django.auth import User
