@@ -52,25 +52,6 @@ class Point(models.Model):
     type = models.CharField(max_length=2,
                             choices=POINT_TYPES,
                             default=UNKNOWN)
-    
-    def save(self, address, type, coords, visits, user_id, lon, lat):
-        self.address = address
-        self.coords = coords
-        if len(type) <= 0:
-            type = UNKNOWN
-        self.type = type
-        self.visit_frequency = visits
-        self.user_id = user_id
-        self.lon = lon
-        self.lat = lat
-        
-        logger.warn("Saving a point: address=%s, coords=%s, type=%s, visits=%s, lon=%s, lat=%s" % (str(address), 
-                                                                                                       str(coords), 
-                                                                                                       str(type), 
-                                                                                                       str(visits), 
-                                                                                                       str(lon), 
-                                                                                                       str(lat)))
-        
-        super(Point, self).save()
+
 
     

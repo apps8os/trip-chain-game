@@ -21,7 +21,11 @@ class PlaceRecognition:
         self.__points = []
         
     def save_point(self, point, uid):
-        #TODO: address, type='UN', coords, visits, user_id
+        '''
+            Saves or updates a point regarding the points existence.
+            @param point: LocationPoint point that contains the data that is to be saved
+            @param uid: user id
+        '''
         lon = 0
         lat = 0
         
@@ -35,12 +39,15 @@ class PlaceRecognition:
             
         p = Point.objects.filter(user_id=uid, address=point.get_address())
         
-        logger.debug(p)
-        
         if Point.objects.filter(user_id=uid, address=point.get_address()).exists():
-            logger.debug("Update a tuple")
             p.address=point.get_address()
-            #p.type=p.UNKNOWN
+            
+            #Updating list of coordinates with new values: FIX ME!
+            #coordinates = p.coords
+            #for c in point.get_coords():
+            #    if c not in coordinates:
+            #        coordinates.append(c)
+            
             p.coords=point.get_coords()
             p.visit_frequency=point.get_points()
             puser_id=uid
@@ -48,20 +55,11 @@ class PlaceRecognition:
             p.lat=lat
             return p.update()
         else:
-            logger.debug("Create a new tuple")
             p = Point(address=point.get_address(), 
-                      #type=p.UNKNOWN, 
                       coords=point.get_coords(), 
                       visit_frequency=point.get_points(), 
-                      user_id=uid, lon=lon, lat=lat)
+                      user_id=uid, lon=lon, lat=lat, type='UN')
             return p.save()
-        
-            
-        #    return p.save(point.get_address(), p.UNKNOWN, point.get_coords(), point.get_points(), uid, lon, lat)
-        #else:
-        #p = Album(userID=request.user, name = name, thumbUrl = thumbUrl, description = desc, price = money, shared = shared, sellable = sell, creationTime = time, hashKey = hashKey)
-        
-        #return p.save(point.get_address(), p.UNKNOWN, point.get_coords(), point.get_points(), uid, lon, lat) 
         
     def get_points(self):
         return self.__points

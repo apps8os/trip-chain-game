@@ -37,31 +37,31 @@ def home(request):
 
 @login_required
 def locations_view(request):
-    logger.debug("locations_view")
     if request.user.is_authenticated():
-        logger.debug("locations_view.is_authenticated")
         uid = _uid_from_user(request.user)
+        #points = get_object_or_404(Point, user_id=uid)
         points = Point.objects.filter(user_id=uid)
         
+        logger.debug("locations_view.is_authenticated %s" % uid)
         logger.debug("locations_view.is_authenticated %s" % points)
         
         for p in points:
             logger.debug("Point %s (%s)" % (p.address, p))
         
-        locations = [str(t.address) + "<br/>" for t in Point.objects.filter(user_id=uid)]
+        locations = [str(t.address) + "<br/>" for t in points]
 
         return HttpResponse(locations, status=200)
     else:
-        locations = [str(t) + "<br/>" for t in Point.objects.all()]
-        return HttpResponse(locations, status=200)
+        return view_trips(request)
 
 @login_required
 def route_analysis_view(request):
     context = {}
     if request.user.is_authenticated():
         places = PlaceRecognition()
+        uid = _uid_from_user(request.user)
         trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
-        points = places.point_analysis(trips, request.user)
+        points = places.point_analysis(trips, uid)
         context['places'] = points
         #for point in points:
             #logger.debug(str(point))
