@@ -13,7 +13,7 @@ from django.conf import settings
 import datetime
 import json
 
-from ..models import Trip
+from ..models import Trip, Point
 
 from tripchaingame.models import Trip
 
@@ -36,12 +36,32 @@ def home(request):
     return render_to_response('index.html')
 
 @login_required
+def locations_view(request):
+    logger.debug("locations_view")
+    if request.user.is_authenticated():
+        logger.debug("locations_view.is_authenticated")
+        uid = _uid_from_user(request.user)
+        points = Point.objects.filter(user_id=uid)
+        
+        logger.debug("locations_view.is_authenticated %s" % points)
+        
+        for p in points:
+            logger.debug("Point %s (%s)" % (p.address, p))
+        
+        locations = [str(t.address) + "<br/>" for t in Point.objects.filter(user_id=uid)]
+
+        return HttpResponse(locations, status=200)
+    else:
+        locations = [str(t) + "<br/>" for t in Point.objects.all()]
+        return HttpResponse(locations, status=200)
+
+@login_required
 def route_analysis_view(request):
     context = {}
     if request.user.is_authenticated():
         places = PlaceRecognition()
         trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
-        points = places.point_analysis(trips)
+        points = places.point_analysis(trips, request.user)
         context['places'] = points
         #for point in points:
             #logger.debug(str(point))
@@ -76,6 +96,7 @@ def view_trips(request):
             
             if request.user.is_authenticated():
                 uid = _uid_from_user(request.user)
+                context['places'] = [str(p.lon) +","+ str(p.lat) for p in Point.objects.filter(user_id=uid)]
                 trips = [t.trip for t in Trip.objects.filter(user_id=uid,started_at__range=[date1, date2])]
                 context['trips'] = json.dumps(trips)
             else:
@@ -87,6 +108,7 @@ def view_trips(request):
                 uid = _uid_from_user(request.user)
                 trips = [t.trip for t in Trip.objects.filter(user_id=uid)]
                 context['trips'] = json.dumps(trips)
+                context['places'] = [str(p.lon) +","+ str(p.lat) for p in Point.objects.filter(user_id=uid)]
             else:
                 trips = [t.trip for t in Trip.objects.all()]
                 context['trips'] = json.dumps(trips)

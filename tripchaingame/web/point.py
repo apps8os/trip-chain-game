@@ -7,7 +7,7 @@ import json
 #Logging
 logger = logging.getLogger(__name__)
 
-class Point:
+class LocationPoint:
     def __init__(self):
         #init vars
         self._coords = []
@@ -41,10 +41,10 @@ class Point:
     
     def set_coords(self, coordinates):
         if coordinates not in self._coords:
-            logger.warn("Point (%s) %s not found from coordinates table" % (self.get_address(),coordinates))
+            logger.warn("LocationPoint (%s) %s not found from coordinates table" % (self.get_address(),coordinates))
             self._coords.append(coordinates)
         else:
-            logger.warn("Point %s found from coordinates table" % coordinates)
+            logger.warn("LocationPoint %s found from coordinates table" % coordinates)
     
     def get_address(self):
         return self._address

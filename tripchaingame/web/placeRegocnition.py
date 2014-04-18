@@ -1,8 +1,9 @@
 import logging
 #from tripchaingame.web.reittiopasAPI import ReittiopasAPI
 from reittiopasAPI import ReittiopasAPI
-from point import Point
+from point import LocationPoint
 import json
+from ..models import Point
 
 '''
     A class dedicated to work on place recognition logic.
@@ -19,6 +20,49 @@ class PlaceRecognition:
         self.__threshold=0.1
         self.__points = []
         
+    def save_point(self, point, uid):
+        #TODO: address, type='UN', coords, visits, user_id
+        lon = 0
+        lat = 0
+        
+        for c in point.get_coords():
+            lonlat = c.split(",")
+            lon = lonlat[0]
+            lat = lonlat[1]
+            logger.debug("lon=%s,lat=%s (%s)" % (str(lon), str(lat), str(c)))
+            if len(lon)>0 and len(lat)>0:
+                break
+            
+        p = Point.objects.filter(user_id=uid, address=point.get_address())
+        
+        logger.debug(p)
+        
+        if Point.objects.filter(user_id=uid, address=point.get_address()).exists():
+            logger.debug("Update a tuple")
+            p.address=point.get_address()
+            #p.type=p.UNKNOWN
+            p.coords=point.get_coords()
+            p.visit_frequency=point.get_points()
+            puser_id=uid
+            p.lon=lon
+            p.lat=lat
+            return p.update()
+        else:
+            logger.debug("Create a new tuple")
+            p = Point(address=point.get_address(), 
+                      #type=p.UNKNOWN, 
+                      coords=point.get_coords(), 
+                      visit_frequency=point.get_points(), 
+                      user_id=uid, lon=lon, lat=lat)
+            return p.save()
+        
+            
+        #    return p.save(point.get_address(), p.UNKNOWN, point.get_coords(), point.get_points(), uid, lon, lat)
+        #else:
+        #p = Album(userID=request.user, name = name, thumbUrl = thumbUrl, description = desc, price = money, shared = shared, sellable = sell, creationTime = time, hashKey = hashKey)
+        
+        #return p.save(point.get_address(), p.UNKNOWN, point.get_coords(), point.get_points(), uid, lon, lat) 
+        
     def get_points(self):
         return self.__points
     
@@ -28,11 +72,11 @@ class PlaceRecognition:
     def get_size_threshold(self):
         return len(self.__points)
     
-    def point_analysis(self, trips):
+    def point_analysis(self, trips, user_id):
         self.trip_point_profiler(trips)
-        return self.get_points_of_interest()
+        return self.get_points_of_interest(user_id)
 
-    def get_points_of_interest(self):
+    def get_points_of_interest(self, user_id):
         size = self.get_size_threshold()
         points = self.get_points()
         points_of_interest = []
@@ -41,6 +85,8 @@ class PlaceRecognition:
             value = float(point.get_points()) / float(size)
             point.set_threshold_value(value)
             if value >= self.__threshold:
+                res = self.save_point(point, user_id)
+                logger.debug("saved a point %s" % str(res) )
                 points_of_interest.append(point)
                 
         return points_of_interest
@@ -188,7 +234,7 @@ class PlaceRecognition:
                         
                 logger.warn("Returning empty start point, check your coordinates %s in index %d" % (coords, i))
                     
-        return Point()
+        return LocationPoint()
     
     '''
         Retrieves the wanted point information for a point

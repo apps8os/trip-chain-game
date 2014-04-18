@@ -3,6 +3,10 @@
 
         <script type="text/javascript" charset="utf-8">
         
+        		{% if user.is_authenticated %}
+        			//var places = {{places|safe}};
+        			console.log({{places|safe}});
+        		{% endif %}
                 var trips = {{trips|safe}};
                 console.log({{start_date|safe}})
                 console.log({{end_date|safe}})
@@ -48,6 +52,10 @@
 	            	<span class="plaintext">
 						<input name="walk" type="checkbox" class="newstext" id="walk"  checked>
 						Walking trips
+					</span>
+					<span class="plaintext">
+						<input name="bike" type="checkbox" class="newstext" id="bike"  checked>
+						Bike trips
 					</span>
 					<span class="plaintext">
 						<input name="still" type="checkbox" class="newstext" id="still" checked>

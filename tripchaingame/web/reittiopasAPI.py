@@ -2,7 +2,7 @@ import logging
 from django.http import Http404, HttpResponse
 import requests
 import json
-from point import Point
+from point import LocationPoint
 
 #Logging
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class ReittiopasAPI:
         self.__passwd=os.environ.get('REITTIOPASAPI_PASSWD', '')
         
     def get_reverse_geocode(self, coordinates):
-        result = Point()
+        result = LocationPoint()
         parameters = {'request': 'reverse_geocode', 
                       'coordinate': coordinates, 
                       'epsg_in':self.__epsg_in, 

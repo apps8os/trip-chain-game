@@ -1,47 +1,85 @@
-body {
-    margin-left: 0px;
-    margin-top: 0px;
-    margin-right: 0px;
-    margin-bottom: 0px;
-}
-.mapposn {
-    display: block;
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    height: 100%;
-    width: 100%;
-}
-#map { height: 500px; }
-#key {
-    height: 40px;
-    width: 360px;
-    position: absolute;
-    left: 50%;
-    margin-left: -150px;
-    font-family: Verdana, Geneva, sans-serif;
-    font-size: small;
-    background-color: #FFF;
-    top: 25px;
-    padding-left: 10px;
-    padding-top: 3px;
-    border: 1px solid #666;
-}
-#blue {
-    width: 85px;
-    display: inline;
-    left: 105px;
-    font-size: 2px;
-    position: absolute;
-    background-color: #36F;
-    margin-top: 7px;
-}
-#red {
-    width: 85px;
-    display: inline;
-    left: 105px;
-    font-size: 2px;
-    position: absolute;
-    background-color: #C30;
-    margin-top: 7px;
+.plaintext {
+				font-size: 1.1em;
+   				color: black;
+   				font-weight:bold;
+   				display: block;
+   				margin-bottom: 3px;
+   				margin-left: 7px;
+			}
+			
+			.plaintextHeader {
+				font-size: 1.3em;
+   				color: black;
+   				font-weight:bold;
+   				display: block;
+   				margin-bottom: 5px;
+   				margin-left: 5px;
+			}
+			
+			.mapposn {
+			    display: block;
+			    position: absolute;
+			    left: 0px;
+			    top: 0px;
+			    height: 100%;
+			    width: 100%;
+			}
+			#map { 	
+				height: 93%;
+				width: 100%;
+				position: relative;
+			 }
+			#key {
+			    height: 140px;
+			    width: 360px;
+			    position: absolute;
+			    left: 80%;
+			    margin-left: -150px;
+			    font-family: Verdana, Geneva, sans-serif;
+			    font-size: small;
+			    background-color:rgba(25,82,255,0.7);
+			    top: 10%;
+			    padding-left: 10px;
+			    padding-top: 3px;
+			    border: 4px solid #00a86b;
+			    border-radius: 20px;
+				
+			}
+			#header {
+			    height: 7%;
+			    width: 100%;
+			    position: relative;
+			    color= #FFFFFF;
+			    font-family: Verdana, Geneva, sans-serif;
+			    font-size: small;
+			    background-color:black;
+			    top: 0px;			
+			    //box-shadow: 5px 5px 10px #888888;
+			} 
+			#headerContent {
+			    height: 100%;
+			    width: 100%;
+			    position: absolute;
+			    color= #FFFFFF;
+			    font-family: Verdana, Geneva, sans-serif;
+			    font-size: small;
+			    background-color:black;
+			    top: 5px;			
+			    box-shadow: 5px 5px 10px #888888;
+			} 
+			#content
+			{
+			    position: absolute;
+			    top: 0;
+			    right: 0;
+			    bottom: 0;
+			    left: 0;
+			    background-color: #DFD4CA;
+			    //padding-left: 260px;
+			}
+			
+			.helloText {
+				color= #FFFFFF;
+				font-family: Verdana, Geneva, sans-serif;
+			}
 }  

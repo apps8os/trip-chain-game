@@ -1,20 +1,20 @@
 .plaintext {
-				font-size: 1.1em;
-   				color: black;
-   				font-weight:bold;
-   				display: block;
-   				margin-bottom: 3px;
-   				margin-left: 7px;
-			}
+	font-size: 1.1em;
+   	color: black;
+   	font-weight:bold;
+   	display: block;
+   	margin-bottom: 3px;
+   	margin-left: 7px;
+}
 			
-			.plaintextHeader {
-				font-size: 1.3em;
-   				color: black;
-   				font-weight:bold;
-   				display: block;
-   				margin-bottom: 5px;
-   				margin-left: 5px;
-			}
+.plaintextHeader {
+	font-size: 1.3em;
+	color: black;
+	font-weight:bold;
+	display: block;
+	margin-bottom: 5px;
+	margin-left: 5px;
+}
 			
 			.mapposn {
 			    display: block;
@@ -30,7 +30,7 @@
 				position: relative;
 			 }
 			#key {
-			    height: 140px;
+			    height: 160px;
 			    width: 360px;
 			    position: absolute;
 			    left: 80%;
