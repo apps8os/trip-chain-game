@@ -76,6 +76,10 @@
 						<input name="vehicle" type="checkbox" class="newstext" id="vehicle" checked>
 						Vehicle
 					</span>
+					<span class="plaintext">
+						<input name="locations" type="checkbox" class="newstext" id="locations" checked>
+						Places
+					</span>
 					{% if user.is_authenticated %}
 					<form method="POST">
 					    {% csrf_token %}

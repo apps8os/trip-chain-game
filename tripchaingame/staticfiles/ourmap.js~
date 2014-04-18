@@ -95,12 +95,15 @@
             };
 
         var styleLocation = {
-                strokeColor: "black",
-                strokeWidth: 10,
-                strokeOpacity: 0.4
+                fillColor : 'black',
+		fillOpacity : 0.9,                    
+		strokeColor : "#ee9900",
+		strokeOpacity : 1,
+		strokeWidth : 1,
+		pointRadius : 7
             };
             
-		var locations = new OpenLayers.Layer.Vector("Places", {style: styleLocation});
+		var locations = "";
 		var vehicle = new OpenLayers.Layer.Vector("Vehicle", {style: vehicleLine});
 		var unknown = new OpenLayers.Layer.Vector("Unknown", {style: styleLine});
 		var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
@@ -159,14 +162,7 @@
 		        {
 		            Address : place[3],
 		            Coordinates : coords
-		        }, {
-		            fillColor : 'black',
-		            fillOpacity : 0.9,                    
-		            strokeColor : "#ee9900",
-		            strokeOpacity : 1,
-		            strokeWidth : 1,
-		            pointRadius : 7
-		        });
+		        }, styleLocation);
 	    }
 	    return features;
 	}
@@ -261,9 +257,9 @@
 
 		var features = getFeaturesForPopup(map.getProjectionObject())
 
-		//Popups
+		//Popups for places
 		if(features.length > 0){
-			var vector = new OpenLayers.Layer.Vector("Points",{
+			locations = new OpenLayers.Layer.Vector("Places",{
 			  eventListeners:{
 			    'featureselected':function(evt){
 				var feature = evt.feature;
@@ -286,22 +282,22 @@
 			  }
 			});
 
-			vector.addFeatures(features);
+			locations.addFeatures(features);
 
 			// create the select feature control
-			var selector = new OpenLayers.Control.SelectFeature(vector,{
-				hover:true,
+			var selector = new OpenLayers.Control.SelectFeature(locations,{
+				//hover:true,
 				autoActivate:true
 			}); 
 
-			map.addLayer(vector);
+			map.addLayer(locations);
 			map.addControl(selector);
 		}
 
                 for (var i = 0; i < trips.length; i++) {
                 
 	       	    map.addLayer(vehicle);
-	       	    map.addLayer(locations);
+	       	    //map.addLayer(locations);
 	       	    map.addLayer(bike);
 	       	    map.addLayer(unknown);
 	            map.addLayer(walking);
