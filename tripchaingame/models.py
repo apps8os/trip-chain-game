@@ -5,6 +5,7 @@ from djangotoolbox.fields import DictField, ListField, EmbeddedModelField
 import logging
 logger = logging.getLogger(__name__)
 
+
 class Location(models.Model):
     time = models.DateTimeField()
     longitude = models.FloatField()
@@ -20,6 +21,13 @@ class Activity(models.Model):
     value = models.CharField()
 
 
+class RoadSegment(models.Model):
+    street = models.CharField()
+    country = models.CharField()
+    city = models.CharField()
+    locations = ListField(EmbeddedModelField(Location))
+
+
 class Trip(models.Model):
     user_id = models.CharField()
     started_at = models.DateTimeField()
@@ -29,6 +37,8 @@ class Trip(models.Model):
 
     locations = ListField(EmbeddedModelField(Location), null=True)
     activities = ListField(EmbeddedModelField(Activity), null=True)
+    roads = ListField(EmbeddedModelField(RoadSegment), null=True)
+
     
 class Point(models.Model):
     SHOP = 'SH'
