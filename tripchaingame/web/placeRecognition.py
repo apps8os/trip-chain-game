@@ -128,8 +128,11 @@ class PlaceRecognition:
         return len(self.__points)
     
     def point_analysis(self, trips, user_id):
-        self.trip_point_profiler(trips)
-        return self.save_location_points(user_id)
+        if len(trips) > 0:
+            self.trip_point_profiler(trips)
+            return self.save_location_points(user_id)
+        else:
+            return None
 
     def save_location_points(self, user_id):
         '''

@@ -14,7 +14,7 @@ function do_place_data_analysis(){
     .done(function( ret ) {
    	console.log("Saved "+ret);
 	new_places = ret;
-	console.log(new_places);
+	//console.log(new_places);
 	$('#get_places').attr("disabled", false);
     });
 }
