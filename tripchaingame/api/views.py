@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response, redirect, get_object_or_404, re
 
 from django.contrib.auth.decorators import login_required
 
-from ..models import Trip, Location, Activity, RoadSegment
+from ..models import Trip, Location, Activity, RoadSegment, Address
 
 import json
 import datetime
@@ -74,6 +74,18 @@ def _create_road_segments(trip_json):
         }
         locations = [_convert_timestamp(l) for l in road_segment.get('locations', [])]
         d['locations'] = [Location.objects.create(**l) for l in locations] or None
+        d['addresses'] = [_create_address(a) for a in road_segment.get('addresses', [])]
+
         road_models.append(RoadSegment.objects.create(**d))
 
     return road_models or None
+
+
+def _create_address(address):
+    address['postal_code'] = address['postalCode']
+    address['house_number'] = address['houseNumber']
+
+    del address['postalCode']
+    del address['houseNumber']
+
+    return Address.objects.create(**address)

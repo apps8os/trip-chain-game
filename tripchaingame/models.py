@@ -6,6 +6,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class Address(models.Model):
+    city = models.CharField()
+    country = models.CharField()
+    county = models.CharField()
+    street = models.CharField()
+    label = models.CharField()
+    state = models.CharField()
+    district = models.CharField()
+    postal_code = models.CharField()
+    house_number = models.CharField(null=True)
+
+
 class Location(models.Model):
     time = models.DateTimeField()
     longitude = models.FloatField()
@@ -26,6 +38,7 @@ class RoadSegment(models.Model):
     country = models.CharField()
     city = models.CharField()
     locations = ListField(EmbeddedModelField(Location))
+    addresses = ListField(EmbeddedModelField(Address), null=True)
 
 
 class Trip(models.Model):
@@ -39,7 +52,7 @@ class Trip(models.Model):
     activities = ListField(EmbeddedModelField(Activity), null=True)
     roads = ListField(EmbeddedModelField(RoadSegment), null=True)
 
-    
+
 class Point(models.Model):
     SHOP = 'SH'
     LIBRARY = 'LB'
