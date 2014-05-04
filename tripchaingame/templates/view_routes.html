@@ -3,47 +3,103 @@
 		<!-- 
 		{{places|safe}}
 		-->
+		
+		<style type="text/css" media="screen">
+		.known_place {
+			background: url("{{STATIC_URL}}known.png") no-repeat;
+		}
+        </style>
+		
         <script type="text/javascript" charset="utf-8">
+        		var known_place_icon = null;
         		{% if user.is_authenticated %}
         			var places = {{places|safe}};
+        			var locs = ["SH", "LB", "HM", "WK"];
         			console.log({{places|safe}});
+        			
+        			known_place_icon = '{{STATIC_URL}}';
+        			
+        			
         		{% else %}
         			var places =0;
         		{% endif %}
                 var trips = {{trips|safe}};
+                
+        
+                
+       	function get_template(feature){
+			var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";
+			var token = "{% csrf_token %}";
+			var default_template = "<input type='hidden' name='address' id='address' value='"+feature.attributes.Address+"'/><div style='font-size:.8em'>Coordinates: " + feature.attributes.Coordinates +"<br>Address: " + feature.attributes.Address+"</div>";
+			var size = locs.length;
+			var par_address = "&quot;"+feature.attributes.Address+"&quot;";
+			var select_template = "<select id='location_type' onChange='do_save_location_type("+par_address+");'><option value='UN'>Select location</option>";
+			    for(var i = 0; i < size; i++) {
+			    	if(feature.attributes.type == locs[i]) {
+				    	select_template = select_template+"<option value='"+locs[i]+"' selected>"+locs[i]+"</option>";
+				    } else {
+				    	select_template = select_template+"<option value='"+locs[i]+"'>"+locs[i]+"</option>";
+				    }
+			    }
+			select_template = select_template+"</select></form>";	
+			var template = "";
+			console.log("Bowie "+feature.attributes.type);
+			
+			template = form_template+token+default_template+select_template;
+			return template;
+	}
+	
+	function get_csrf_token() {
+		return '{{csrf_token}}';
+	}
+	
+
         
         </script>
 <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
 	<!--<script src="{{STATIC_URL}}openlayers.js"></script-->
     <script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js" type="text/javascript" charset="utf-8"></script>
     <script src="{{STATIC_URL}}ourmap.js"></script>
+    <script src="{{STATIC_URL}}ajax.js"></script>
 
         </head>
         <body onLoad="getLocation()">
         	<div id="content">
         	<div id="header">
-                <!--div id="headerContent"-->
-                <form id="google-plus" method="post" action="{% url 'social:complete' "google-plus" %}">{% csrf_token %}
-                    <input id="at" type="hidden" name="access_token" value=""/>
-                    <input id="code" type="hidden" name="code" value=""/>
-                </form>
-                {% if not user.is_authenticated %}
-                    <div id="signinButton" style="padding: 0.5%;">
-
-                               <span class="g-signin"
-                                     data-scope="{{ plus_scope }}"
-                                     data-clientid="{{ plus_id }}"
-                                     data-redirecturi="postmessage"
-                                     data-accesstype="online"
-                                     data-cookiepolicy="single_host_origin"
-                                     data-callback="signInCallback">
-                               </span>
-                    </div>
-                {% else %}
-                    <div class="helloText" style="color: #FFFFFF;"> Hi, {{ user.get_full_name }}!</div>
-                    <form action="/logout">
-                        <input id="submit" type="submit" value="Logout">
-                    </form>
+        		<div class="line">
+	                <!--div id="headerContent"-->
+	                <form id="google-plus" method="post" action="{% url 'social:complete' "google-plus" %}">{% csrf_token %}
+	                    <input id="at" type="hidden" name="access_token" value=""/>
+	                    <input id="code" type="hidden" name="code" value=""/>
+	                </form>
+	                {% if not user.is_authenticated %}
+	                    <div id="signinButton" style="padding: 0.5%;">
+	
+	                               <span class="g-signin"
+	                                     data-scope="{{ plus_scope }}"
+	                                     data-clientid="{{ plus_id }}"
+	                                     data-redirecturi="postmessage"
+	                                     data-accesstype="online"
+	                                     data-cookiepolicy="single_host_origin"
+	                                     data-callback="signInCallback">
+	                               </span>
+	                    </div></div>
+	                {% else %}
+	                    <div class="helloText" style="color: #FFFFFF;"> Hi, {{ user.get_full_name }}!</div>
+	                    <form action="/logout">
+	                        <input id="submit" type="submit" value="Logout">
+	                    </form>
+                </div>
+                <div class="line">
+                	{% if user.is_authenticated %}
+                   	<input type="hidden" id="uid" value="{{uid}}">
+                   		{% if place_analysis > 0 %}
+                  			<input type="button" class="menu_button" id="get_places" onclick="do_place_data_analysis()" value="Places: {{place_analysis}} new trips">
+                  		{% else %}
+                  			<input type="button" class="menu_button" id="get_places" onclick="do_place_data_analysis()" value="Places: No new trips">
+                  		{% endif %}
+                  	{% endif %}
+                </div>
                 {% endif %}
 				<!--/div-->
         	</div>
@@ -78,7 +134,19 @@
 						<input name="locations" type="checkbox" class="newstext" id="locations" checked>
 						Places
 					</span>
+					
 					{% if user.is_authenticated %}
+					
+					<form method="POST">
+					    {% csrf_token %}
+					    <span class="plaintext">
+							Clean my places: <input name="do_cleanup" type="checkbox" class="newstext" id="do_cleanup" checked>
+						</span>
+					    <input type="submit" value="Clean" id="submit" >
+					</form>
+					
+					
+					
 					<form method="POST">
 					    {% csrf_token %}
 					    Select dates: <input type="text" name="start_date" style="width:80px" id="start_date" value="{{start_date}}"> - 

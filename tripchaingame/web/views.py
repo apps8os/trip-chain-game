@@ -13,7 +13,7 @@ from django.conf import settings
 import datetime
 import json
 
-from ..models import Trip, Point
+from ..models import Trip, Point, SecondaryPoint, AnalysisInfo
 
 from tripchaingame.models import Trip
 
@@ -60,9 +60,28 @@ def route_analysis_view(request):
     if request.user.is_authenticated():
         places = PlaceRecognition()
         uid = _uid_from_user(request.user)
-        trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
+        trips = None
+        last_analysis = None
+        
+        date_today = places._get_todays_date()
+        
+        #Last analysis date
+        qs = AnalysisInfo.objects.filter(user_id=uid)
+        if qs.exists():
+            last_analysis = qs[0]
+        
+        logger.debug("search %s - %s" % (date_today,str(last_analysis)))
+        
+        if last_analysis:
+            analysis_date = last_analysis.analysis_date
+            trips = Trip.objects.filter(user_id=uid,started_at__range=[analysis_date, date_today])
+        else:
+            trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
+        
         points = places.point_analysis(trips, uid)
+        
         context['places'] = points
+        context['uid'] = uid
         logger.debug("places = %d" % len(points))
             
     return HttpResponse(context['places'], status=200)
@@ -73,16 +92,39 @@ def _get_places(uid):
         for p in points:
             logger.debug("Point %s (%s)" % (p.address, p))
         
-        locations = [str(t.lon) + ";" + str(t.lat) + ";" + str(t.visit_frequency) + ";" + str(t.address) for t in points]
+        locations = [str(t.lon) + ";" + str(t.lat) + ";" + str(t.visit_frequency) + ";" + str(t.address) + ";" + str(t.type) for t in points]
         return locations
     else:
         return None
+
+def save_location(request):
+    ret = 0
+    type = "UN"
     
+    if request.method == 'POST':
+        uid = request.POST['uid']
+        address = request.POST['address']
+        if 'type' in request.POST:
+            type = request.POST['type']
+            
+        if len(uid) > 0 and len(address) > 0 and type != "UN":
+            logger.debug("Ready to query: type=%s, address=%s, uid=%s" % (type, address, uid))
+            location = Point.objects.get(user_id=uid, address=address)#get_object_or_404(Point, user_id=uid, address=address)
+            if location != None:
+                location.type = type
+                location.save()
+                #t = get_object_or_404(Point, user_id=uid, address=address)
+                #logger.info("Test result: %s" % t.type)
+                ret = 1
+        else:
+            logger.debug("Nothing saved due to bad parameters: type=%s, address=%s, uid=%s" % (type, address, uid))
+    return HttpResponse(str(ret), content_type="text/plain")
 
 def view_trips(request):
     end_postfix = "23:59:59"
     start_postfix = "00:00:00"
     context = {}
+    places = PlaceRecognition()
 
     context['plus_scope'] = ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
     context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
@@ -93,6 +135,13 @@ def view_trips(request):
         if 'start_date' in request.POST and 'end_date' in request.POST:
             start_date=request.POST['start_date']
             end_date=request.POST['end_date']
+            
+        if 'do_cleanup' in request.POST:
+            clean=request.POST['do_cleanup']
+            logger.debug("Value of cleanup %s" % clean)
+            if request.user.is_authenticated() and clean:
+                uid = _uid_from_user(request.user)
+                _clean_points(uid)
         
         context['start_date'] = start_date
         context['end_date'] = end_date
@@ -106,10 +155,11 @@ def view_trips(request):
             
             if request.user.is_authenticated():
                 uid = _uid_from_user(request.user)
-                #places = [str(p.lon) +","+ str(p.lat) for p in Point.objects.filter(user_id=uid)]
+                context['uid'] = uid
                 context['places'] = _get_places(uid)
                 trips = [t.trip for t in Trip.objects.filter(user_id=uid,started_at__range=[date1, date2])]
                 context['trips'] = json.dumps(trips)
+                context['place_analysis'] = places.get_count_of_new_trips(uid)
             else:
                 trips = [t.trip for t in Trip.objects.filter(started_at__range=[date1, date2])]
                 context['trips'] = json.dumps(trips)
@@ -118,8 +168,11 @@ def view_trips(request):
             if request.user.is_authenticated():
                 uid = _uid_from_user(request.user)
                 trips = [t.trip for t in Trip.objects.filter(user_id=uid)]
+                context['uid'] = uid
                 context['trips'] = json.dumps(trips)
                 context['places'] = _get_places(uid)
+                context['place_analysis'] = places.get_count_of_new_trips(uid)
+                
             else:
                 trips = [t.trip for t in Trip.objects.all()]
                 context['trips'] = json.dumps(trips)
@@ -128,8 +181,10 @@ def view_trips(request):
         if request.user.is_authenticated():
             uid = _uid_from_user(request.user)
             trips = [t.trip for t in Trip.objects.filter(user_id=uid)]
+            context['uid'] = uid
             context['trips'] = json.dumps(trips)
             context['places'] = _get_places(uid)
+            context['place_analysis'] = places.get_count_of_new_trips(uid)
         else:
             trips = [t.trip for t in Trip.objects.all()]
             context['trips'] = json.dumps(trips)
@@ -145,6 +200,7 @@ def trips_today(request):
 
     trips = [t.trip for t in Trip.objects.filter(user_id=uid, started_at__range=[yesterday, now])]
     context = {'trips': json.dumps(trips)}
+    context['uid'] = uid
 
     return render_to_response("view_routes.html", context)
 
@@ -160,6 +216,18 @@ def my_trips(request):
     else:
         trips = [str(t.trip) + "<br/>" for t in Trip.objects.all()]
         return HttpResponse(trips, status=200)
+    
+def _clean_points(uid):
+    if uid:
+        SecondaryPoint.objects.filter(user_id=uid).delete()
+        Point.objects.filter(user_id=uid).delete()
+
+        old_date = "01/01/1970 00:00:00"
+        date = datetime.datetime.strptime(old_date,"%m/%d/%Y %H:%M:%S")
+        analysis = AnalysisInfo.objects.filter(user_id=uid)
+        analysis.update(analysis_date = date)
+        
+        #AnalysisInfo.objects.filter(user_id=uid).delete()
 
 def login(request):
     context = {

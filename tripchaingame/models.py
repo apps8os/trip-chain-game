@@ -46,22 +46,43 @@ class Point(models.Model):
     HOME = 'HM'
     WORK = 'WK'
     UNKNOWN = 'UN'
+    SCHOOL = 'SC'
     POINT_TYPES = (
         (SHOP, 'Shop'),
         (LIBRARY, 'Library'),
         (HOME, 'Home'),
         (WORK, 'Work'),
+        (SCHOOL, 'School'),
         (UNKNOWN, 'Unknown'),
     )
     user_id = models.CharField()
     address = models.CharField()
     visit_frequency = models.IntegerField()
-    coords = ListField()
     lon = models.CharField()
     lat = models.CharField()
     type = models.CharField(max_length=2,
                             choices=POINT_TYPES,
                             default=UNKNOWN)
+    
+    def __str__(self):
+        str = "%s (%s), %s\n" % (self.address, self.type, self.visit_frequency)
+        return str
 
-
+class SecondaryPoint(models.Model):
+    analysis_date = models.DateTimeField(auto_now_add=True, null=True)
+    user_id = models.CharField()
+    address = models.CharField()
+    visit_frequency = models.IntegerField()
+    coords = ListField()
+    
+    def __str__(self):
+        str = "%s (%s), %s\n" % (self.address, self.coords, self.visit_frequency)
+        return str
+    
+class AnalysisInfo(models.Model):
+    analysis_date = models.DateTimeField(null=True)
+    user_id = models.CharField()
+    def __str__(self):
+        str = "%s (%s)\n" % (self.analysis_date, self.user_id)
+        return str
     

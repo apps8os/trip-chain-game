@@ -94,14 +94,31 @@
                 strokeOpacity: 0.4
             };
 
-        var styleLocation = {
-                fillColor : 'black',
-		fillOpacity : 0.9,                    
-		strokeColor : "#ee9900",
-		strokeOpacity : 1,
-		strokeWidth : 1,
-		pointRadius : 7
+
+
+	function get_location_icon(type){
+	    var icon = null;
+	    if(type == "UN") {
+		icon = known_place_icon + "unknown.png";
+	    } else {
+		icon = known_place_icon + "known.png";
+	    }
+            var styleLocation = {
+                //fillColor : 'black',
+		//fillOpacity : 0.9,                    
+		//strokeColor : "#ee9900",
+		//strokeOpacity : 1,
+		//strokeWidth : 1,
+		//pointRadius : 7,
+		externalGraphic: icon,
+		cursor: 'pointer',
+		graphicWidth: 32,
+		graphicHeight: 32,
+		fillOpacity: 1
+		//background: url("img/close.gif") no-repeat;
             };
+	    return styleLocation;
+	}
             
 		var locations = "";
 		var vehicle = new OpenLayers.Layer.Vector("Vehicle", {style: vehicleLine});
@@ -161,8 +178,9 @@
 		            place[0], place[1])), 
 		        {
 		            Address : place[3],
-		            Coordinates : coords
-		        }, styleLocation);
+		            Coordinates : coords,
+		            type : place[4],
+		        }, get_location_icon(place[4]));
 	    }
 	    return features;
 	}
@@ -173,6 +191,8 @@
 		 alert("You clicked near " + lonlat.lat + " N, " +
 				                          + lonlat.lon + " E");
 	}
+
+
         function init(){
             	//location_to_address(lat, lon)
 		var options_select = {
@@ -257,6 +277,7 @@
 
 		var features = getFeaturesForPopup(map.getProjectionObject())
 
+
 		//Popups for places
 		if(features.length > 0){
 			locations = new OpenLayers.Layer.Vector("Places",{
@@ -266,9 +287,9 @@
 				var popup = new OpenLayers.Popup.FramedCloud("popup",
 				    OpenLayers.LonLat.fromString(feature.geometry.toShortString()),
 				    null,
-				    "<div style='font-size:.8em'>Coordinates: " + feature.attributes.Coordinates +"<br>Address: " + feature.attributes.Address+"</div>",
+				    get_template(feature),
 				    null,
-				    true
+				    true, onPopupClose
 				);
 				feature.popup = popup;
 				map.addPopup(popup);
@@ -289,6 +310,10 @@
 				//hover:true,
 				autoActivate:true
 			}); 
+
+			function onPopupClose(event) {
+			    selector.unselectAll();
+			}
 
 			map.addLayer(locations);
 			map.addControl(selector);
