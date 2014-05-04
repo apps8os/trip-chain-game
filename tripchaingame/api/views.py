@@ -5,15 +5,22 @@ from django.shortcuts import render_to_response, redirect, get_object_or_404, re
 
 from django.contrib.auth.decorators import login_required
 
-from ..models import Trip, Location, Activity
+from ..models import Trip, Location, Activity, RoadSegment
 
 import json
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def trip(request):
     if request.method == 'POST':
-        return _trip_post(request)
+        try:
+            return _trip_post(request)
+        except Exception as e:
+            logger.debug(e)
+            return HttpResponse(status=500)
 
     return HttpResponse(status=405)  # method not allowed
 
@@ -40,6 +47,8 @@ def _trip_post(request):
     activities = [_convert_timestamp(a) for a in trip_json.get('activities', [])]
     d['activities'] = [Activity.objects.create(**a) for a in activities] or None
 
+    d['roads'] = _create_road_segments(trip_json)
+
     db_trip = Trip.objects.create(**d)
     db_trip.save()
 
@@ -53,3 +62,18 @@ def _convert_timestamp(o):
     ts = o['time']
     o['time'] = datetime.datetime.fromtimestamp(float(ts)/1000)
     return o
+
+def _create_road_segments(trip_json):
+    roads = trip_json.get('roads', [])
+    road_models = []
+    for road_segment in roads:
+        d = {
+            'street': road_segment.get('street'),
+            'country': road_segment.get('country'),
+            'city': road_segment.get('city')
+        }
+        locations = [_convert_timestamp(l) for l in road_segment.get('locations', [])]
+        d['locations'] = [Location.objects.create(**l) for l in locations] or None
+        road_models.append(RoadSegment.objects.create(**d))
+
+    return road_models or None
