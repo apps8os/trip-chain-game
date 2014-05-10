@@ -82,7 +82,11 @@ def route_analysis_view(request):
         
         context['places'] = points
         context['uid'] = uid
-        logger.debug("places = %d" % len(points))
+        
+        if points != None:
+            logger.debug("places = %d" % len(points))
+        else:
+            logger.debug("places = 0")
             
     return HttpResponse(context['places'], status=200)
 
@@ -93,6 +97,17 @@ def _get_places(uid):
             logger.debug("Point %s (%s)" % (p.address, p))
         
         locations = [str(t.lon) + ";" + str(t.lat) + ";" + str(t.visit_frequency) + ";" + str(t.address) + ";" + str(t.type) for t in points]
+        return locations
+    else:
+        return None
+    
+def _get_places_as_objects(uid):
+    if uid:
+        points = Point.objects.filter(user_id=uid)
+        for p in points:
+            logger.debug("Point %s (%s)" % (p.address, p))
+        
+        locations = points
         return locations
     else:
         return None
@@ -156,7 +171,8 @@ def view_trips(request):
             if request.user.is_authenticated():
                 uid = _uid_from_user(request.user)
                 context['uid'] = uid
-                context['places'] = _get_places(uid)
+                context['places'] = _get_places(uid) #_get_places_as_objects
+                context['places_objects'] = _get_places_as_objects(uid) #_get_places_as_objects
                 trips = [t.trip for t in Trip.objects.filter(user_id=uid,started_at__range=[date1, date2])]
                 context['trips'] = json.dumps(trips)
                 context['place_analysis'] = places.get_count_of_new_trips(uid)
@@ -171,6 +187,7 @@ def view_trips(request):
                 context['uid'] = uid
                 context['trips'] = json.dumps(trips)
                 context['places'] = _get_places(uid)
+                context['places_objects'] = _get_places_as_objects(uid)
                 context['place_analysis'] = places.get_count_of_new_trips(uid)
                 
             else:
@@ -184,6 +201,7 @@ def view_trips(request):
             context['uid'] = uid
             context['trips'] = json.dumps(trips)
             context['places'] = _get_places(uid)
+            context['places_objects'] = _get_places_as_objects(uid)
             context['place_analysis'] = places.get_count_of_new_trips(uid)
         else:
             trips = [t.trip for t in Trip.objects.all()]

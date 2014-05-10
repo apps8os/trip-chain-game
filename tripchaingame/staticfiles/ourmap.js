@@ -1,3 +1,4 @@
+	var map;
 	$(function() {
 			$( "#key" ).draggable();
 		});
@@ -101,7 +102,7 @@
 	    if(type == "UN") {
 		icon = known_place_icon + "unknown.png";
 	    } else {
-		icon = known_place_icon + "known.png";
+		icon = known_place_icon + type + ".png";
 	    }
             var styleLocation = {
                 //fillColor : 'black',
@@ -236,7 +237,7 @@
 
             	});
 
-                var map = new OpenLayers.Map ("map", {
+                map = new OpenLayers.Map ("map", {
                     controls: [
                         new OpenLayers.Control.Navigation({
 				            dragPanOptions: {

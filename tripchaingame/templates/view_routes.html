@@ -8,13 +8,39 @@
 		.known_place {
 			background: url("{{STATIC_URL}}known.png") no-repeat;
 		}
+		
+		.home_place {
+			background: url("{{STATIC_URL}}home-hm.png") no-repeat;
+		}
+		
+		
+		.home_button{
+		    //background: url("{{STATIC_URL}}known.png") no-repeat left top;
+		    cursor:pointer;
+		    border:none;
+		    width: 32px;
+		}
+		
+		/*.home_button:hover  /* use Dot here */
+		{   
+		    background: url("{{STATIC_URL}}unknown.png") no-repeat left top;
+		}*/
+		
         </style>
 		
         <script type="text/javascript" charset="utf-8">
         		var known_place_icon = null;
         		{% if user.is_authenticated %}
         			var places = {{places|safe}};
-        			var locs = ["SH", "LB", "HM", "WK"];
+        			var locs = ["SH", "LB", "HM", "WK", "SC"];
+        			locs_map=new Array();
+					locs_map = {
+					    'SH': 'Shop',
+					    'LB': 'Library',
+					    'HM': 'Home',
+					    'WK': 'Work',
+					    'SC': 'School'
+					};
         			console.log({{places|safe}});
         			
         			known_place_icon = '{{STATIC_URL}}';
@@ -25,7 +51,13 @@
         		{% endif %}
                 var trips = {{trips|safe}};
                 
-        
+        function center_map(place_lon, place_lat){
+        	if(map){
+        		map.setCenter(new OpenLayers.LonLat(place_lon, place_lat).transform('EPSG:4326', 'EPSG:3857'), zoom);
+        	} else {
+        		console.log("map is not defined");
+        	}
+        }
                 
        	function get_template(feature){
 			var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";
@@ -36,9 +68,9 @@
 			var select_template = "<select id='location_type' onChange='do_save_location_type("+par_address+");'><option value='UN'>Select location</option>";
 			    for(var i = 0; i < size; i++) {
 			    	if(feature.attributes.type == locs[i]) {
-				    	select_template = select_template+"<option value='"+locs[i]+"' selected>"+locs[i]+"</option>";
+				    	select_template = select_template+"<option value='"+locs[i]+"' selected>"+locs_map[locs[i]]+"</option>";
 				    } else {
-				    	select_template = select_template+"<option value='"+locs[i]+"'>"+locs[i]+"</option>";
+				    	select_template = select_template+"<option value='"+locs[i]+"'>"+locs_map[locs[i]]+"</option>";
 				    }
 			    }
 			select_template = select_template+"</select></form>";	
@@ -100,6 +132,20 @@
                   		{% endif %}
                   	{% endif %}
                 </div>
+                <div class="line">
+                	{% if user.is_authenticated %}
+                   	<input type="hidden" id="uid" value="{{uid}}">
+                   		{% if places != None %}
+                   			{% for place in places_objects %}
+                   				{% if places != "UN" %}
+                   					<input type="image" src="{{STATIC_URL}}{{place.type}}.png" class="home_button" title="Center map on {{place.address}}" onclick="center_map({{place.lon}}, {{place.lat}})" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
+                   				{% endif %}
+                  			{% endfor %}
+                  		{% else %}
+                  			<input type="button" class="menu_button" id="get_places" onclick="do_place_data_analysis()" value="Places: No new trips">
+                  		{% endif %}
+                  	{% endif %}
+                </div>
                 {% endif %}
 				<!--/div-->
         	</div>
@@ -140,9 +186,9 @@
 					<form method="POST">
 					    {% csrf_token %}
 					    <span class="plaintext">
-							Clean my places: <input name="do_cleanup" type="checkbox" class="newstext" id="do_cleanup" checked>
+							Delete all my places: <input name="do_cleanup" type="checkbox" class="newstext" id="do_cleanup" checked>
 						</span>
-					    <input type="submit" value="Clean" id="submit" >
+					    <input type="submit" value="Delete my places" id="submit" >
 					</form>
 					
 					

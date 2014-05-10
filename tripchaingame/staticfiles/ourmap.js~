@@ -1,3 +1,4 @@
+	var map;
 	$(function() {
 			$( "#key" ).draggable();
 		});
@@ -188,8 +189,8 @@
 	function getCoordinates(e) {
 		 // this should work
 		 var lonlat = map.getLonLatFromViewPortPx(e.xy);
-		 alert("You clicked near " + lonlat.lat + " N, " +
-				                          + lonlat.lon + " E");
+		 //alert("You clicked near " + lonlat.lat + " N, " +
+			//	                          + lonlat.lon + " E");
 	}
 
 
@@ -236,7 +237,7 @@
 
             	});
 
-                var map = new OpenLayers.Map ("map", {
+                map = new OpenLayers.Map ("map", {
                     controls: [
                         new OpenLayers.Control.Navigation({
 				            dragPanOptions: {

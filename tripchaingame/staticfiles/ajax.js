@@ -20,7 +20,7 @@ function do_place_data_analysis(){
 }
 
 function do_save_location_type(address){
-    console.log("fuck");
+    //console.log("fuck");
     var par_uid = $('#uid').val();
     var par_address = address;
     var par_type = $('#location_type').val();

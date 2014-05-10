@@ -57,13 +57,16 @@ class PlaceRecognition:
             #Updating list of coordinates with values - this list contains all values for later analysis
             coordinates = SecondaryPoint.objects.get(user_id=uid, address=point.get_address()).coords
             coordinates.extend(point.get_coords())
+            
+            visits = SecondaryPoint.objects.get(user_id=uid, address=point.get_address()).visit_frequency
+            visits = visits + point.get_points()
             #p.coords=coordinates
             
             #p.visit_frequency=point.get_points()
             #analysis = AnalysisInfo.objects.filter(user_id=uid)
             #analysis.update(analysis_date = date)
             #
-            return p.update(visit_frequency=point.get_points(), coords=coordinates)
+            return p.update(visit_frequency=visits, coords=coordinates)
         else:
             p = SecondaryPoint(address=point.get_address(), 
                       coords=point.get_coords(), 
@@ -132,7 +135,8 @@ class PlaceRecognition:
             self.trip_point_profiler(trips)
             return self.save_location_points(user_id)
         else:
-            return None
+            response = [str(t) + "<br/>" for t in SecondaryPoint.objects.filter(user_id=user_id)]
+            return response
 
     def save_location_points(self, user_id):
         '''
@@ -177,6 +181,7 @@ class PlaceRecognition:
         for point in points:
             value = float(point.visit_frequency) / float(total_visits)
             #point.set_threshold_value(value)
+            logger.debug("Threshold calc = %.2f(point visitations) / %.2f (total) for %s" % (float(point.visit_frequency), float(total_visits), point.address))
             logger.debug("Threshold equation %.2f (value) >= %.2f (threshold) for %s" % (value, self.__threshold, point.address))
             if value >= self.__threshold:
                 res = self.save_point(point, user_id)

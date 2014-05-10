@@ -10,6 +10,19 @@
 	display: inline-block;
 }
 
+.home_button{
+    background:url(/static/known.png) no-repeat;
+    cursor:pointer;
+    border:none;
+    width:100px;
+    height:100px;
+}
+
+.home_button:active  /* use Dot here */
+{   
+    background:url(/static/unknown.png) no-repeat;
+}
+
 .menu_button {
     background-color: black;
     -moz-border-radius: 5px;
@@ -24,8 +37,9 @@
 }
 
 .menu_button:hover {
-    border: 4px solid grey;
-    background:#1952ff;
+    border: 4px solid #1952ff;
+    background: white;
+    color: black;
     box-shadow: 0px 0px 1px #777;
 }
 
@@ -135,7 +149,7 @@ p.thought:after
 				position: relative;
 			 }
 			#key {
-			    height: 190px;
+			    height: 240px;
 			    width: 360px;
 			    position: absolute;
 			    left: 80%;

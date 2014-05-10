@@ -26,12 +26,16 @@ class ReittiopasAPI:
                       'pass': self.__passwd}
         json_response = requests.get("http://api.reittiopas.fi/hsl/prod/", params=parameters)
         if json_response.status_code == requests.codes.ok:
-            r = json.dumps(json_response.json())
-            routes = json.loads(r)
-            for route in routes:
-                r = json.dumps(route["name"])
-                result.set_address(r.replace('"',""))
-                result.set_coords(coordinates)
+            try:
+                r = json.dumps(json_response.json())
+                routes = json.loads(r)
+                for route in routes:
+                    r = json.dumps(route["name"])
+                    result.set_address(r.replace('"',""))
+                    result.set_coords(coordinates)
+            except ValueError:
+                logger.debug(json_response.url)
+                logger.warn("Unknown location %s" % str(coordinates))
         else:
             logger.warn(json_response.status_code)
             json_response.raise_for_status()
