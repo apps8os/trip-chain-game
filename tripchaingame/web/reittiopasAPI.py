@@ -41,3 +41,27 @@ class ReittiopasAPI:
             json_response.raise_for_status()
             
         return result
+    
+    def get_route_information(self, start, end, coords, time1):
+        #api.reittiopas.fi/hsl/prod/?request=route&from=2546445,6675512&to=2549445,6675513&time=1030&timetype=arrival
+        result = ""
+        parameters = {'request': 'route', 
+                      'from': start,
+                      'to': stop,
+                      'time': time1,    
+                      'epsg_in':self.__epsg_in, 
+                      'epsg_out':self.__epsg_out,
+                      'user':self.__user,
+                      'pass': self.__passwd}
+        json_response = requests.get("http://api.reittiopas.fi/hsl/prod/", params=parameters)
+        if json_response.status_code == requests.codes.ok:
+            try:
+                result = json.dumps(json_response.json())
+            except ValueError:
+                logger.debug(json_response.url)
+                logger.warn("Unknown route %s" % str(coordinates))
+        else:
+            logger.warn(json_response.status_code)
+            json_response.raise_for_status()
+            
+        return result

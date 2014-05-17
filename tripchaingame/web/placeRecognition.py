@@ -241,7 +241,8 @@ class PlaceRecognition:
                     logger.debug("Skipped empty coords")
             else:
                 logger.debug("Skipped one: %s" % tyyppi)
-                
+           
+
     def get_first_location(self, feature_array, last):
         wrapper = []
         for i in range(0,last):

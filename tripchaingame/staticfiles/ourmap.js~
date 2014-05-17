@@ -41,11 +41,17 @@
 		         {locations.setVisibility(false);}  
 		         else  
 		          {locations.setVisibility(true);}}
+		function tripPoints()  
+		        {if (trip_feature.getVisibility() == true) 
+		         {trip_feature.setVisibility(false);}  
+		         else  
+		          {trip_feature.setVisibility(true);}}
 		$("#still").on("change", stillPoints);
 		$("#locations").on("change", locationPoints);
 		$("#walk").on("change", walkingPoints);
 		$("#unknown").on("change", unknownPoints);
 		$("#vehicle").on("change", vehiclePoints);
+		$("#trip").on("change", tripPoints);
 		$("#bike").on("change", bikePoints);
 		  $("button").click(function(){
 		    $.ajax({url:"demo_test.txt",success:function(result){
@@ -70,7 +76,7 @@
         var vehicleLine = {
                 strokeColor: "blue",
                 strokeWidth: 8,
-                strokeOpacity: 0.4
+                strokeOpacity: 0.4,
             };
         var bikeLine = {
                 strokeColor: "coral",
@@ -95,14 +101,12 @@
                 strokeOpacity: 0.4
             };
 
-
-
 	function get_location_icon(type){
 	    var icon = null;
 	    if(type == "UN") {
 		icon = known_place_icon + "unknown.png";
 	    } else {
-		icon = known_place_icon + "known.png";
+		icon = known_place_icon + type + ".png";
 	    }
             var styleLocation = {
                 //fillColor : 'black',
@@ -120,13 +124,101 @@
             };
 	    return styleLocation;
 	}
-            
-		var locations = "";
-		var vehicle = new OpenLayers.Layer.Vector("Vehicle", {style: vehicleLine});
-		var unknown = new OpenLayers.Layer.Vector("Unknown", {style: styleLine});
-		var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
-		var still = new OpenLayers.Layer.Vector("Still", {style: styleStill}); 
-		var bike = new OpenLayers.Layer.Vector("Bike", {style: bikeLine}); 
+
+	var colors = {
+            bike: "rgb(0, 0, 255)", 
+            vehicle: "rgb(255, 0, 0)", 
+            walk: "rgb(0, 255, 0)",
+            still: "rgb(128, 128, 128)",
+            unknown: "rgb(0, 128, 255)"
+        };
+
+// Define three rules to style the cluster features.
+        var bikeRule = new OpenLayers.Rule({
+            filter: new OpenLayers.Filter.Comparison({
+        	type: OpenLayers.Filter.Comparison.EQUAL_TO,
+        	property: "activity",
+        	value: "on-bicycle"
+            }),
+            symbolizer: {
+		fillColor: colors.bike,
+                fillOpacity: 0.7, 
+		strokeOpacity: 0.6,
+                strokeColor: colors.bike,
+		strokeWidth: 5,
+		label: '${activity}'
+	    }
+	});
+        var vehicleRule = new OpenLayers.Rule({
+            filter: new OpenLayers.Filter.Comparison({
+        	type: OpenLayers.Filter.Comparison.EQUAL_TO,
+        	property: "activity",
+		value: "in-vehicle"
+            }),
+            symbolizer: {
+		fillColor: colors.vehicle,
+                fillOpacity: 0.7, 
+		strokeOpacity: 0.6,
+                strokeColor: colors.vehicle,
+		strokeWidth: 5
+	    } 
+	});
+        var walkRule = new OpenLayers.Rule({
+            filter: new OpenLayers.Filter.Comparison({
+        	type: OpenLayers.Filter.Comparison.EQUAL_TO,
+        	property: "activity",
+        	value: "on-foot"
+            }),
+            symbolizer: {
+		fillColor: colors.walk,
+                fillOpacity: 0.7, 
+		strokeOpacity: 0.6,
+                strokeColor: colors.walk,
+		strokeWidth: 5
+	    }
+	});
+	var unknownRule = new OpenLayers.Rule({
+            filter: new OpenLayers.Filter.Comparison({
+        	type: OpenLayers.Filter.Comparison.EQUAL_TO,
+        	property: "activity",
+        	value: "unknown"
+            }),
+            symbolizer: {
+		fillColor: colors.unknown,
+                fillOpacity: 0.7, 
+		strokeOpacity: 0.6,
+                strokeColor: colors.unknown,
+		strokeWidth: 5
+	    }
+	});
+        var stillRule = new OpenLayers.Rule({
+            filter: new OpenLayers.Filter.Comparison({
+		type: OpenLayers.Filter.Comparison.EQUAL_TO,
+		property: "activity",
+		value: "still"
+            }),
+	    symbolizer: {
+		fillColor: colors.still,
+                fillOpacity: 0.7,
+		strokeOpacity: 0.6,
+                strokeColor: colors.still,
+		strokeWidth: 5
+	    }
+	});
+
+      	// Create a Style that uses the three previous rules
+	var style = new OpenLayers.Style(null, {
+	   rules: [bikeRule, vehicleRule, walkRule, unknownRule, stillRule]
+	});
+
+	var locations = "";
+	var trip_feature = "";
+	
+	var vehicle = new OpenLayers.Layer.Vector("Vehicle", {style: vehicleLine});
+	var unknown = new OpenLayers.Layer.Vector("Unknown", {style: styleLine});
+	var walking = new OpenLayers.Layer.Vector("Walking", {style: styleWalk});
+	var still = new OpenLayers.Layer.Vector("Still", {style: styleStill}); 
+	var bike = new OpenLayers.Layer.Vector("Bike", {style: bikeLine}); 
 
         var lon = 24.9375,
             lat = 60.1708,
@@ -149,7 +241,7 @@
         {
             lat = position.coords.latitude;
             lon = position.coords.longitude;
-	    	console.log("changed pos "+lon+":"+lat);
+	    	//console.log("changed pos "+lon+":"+lat);
 	    	init();
         }
 
@@ -167,6 +259,7 @@
 		return marker;
         }
 
+	//Init popups for places
 	function getFeaturesForPopup(to){
 	    var toMercator = OpenLayers.Projection.transforms['EPSG:4326'][to];
 	    var features = []; 
@@ -193,9 +286,19 @@
 			//	                          + lonlat.lon + " E");
 	}
 
+	function get_location_on_map(e){
+	    var lonlat = map.getLonLatFromPixel(e.xy);
+	    brit = new OpenLayers.Projection("EPSG:900913");
+	    google = new OpenLayers.Projection("EPSG:4326");
+
+	    lonlatclone = lonlat.clone()
+	    lonlatclone.transform(brit, google)
+                    
+	    return lonlatclone;
+	}
+
 
         function init(){
-            	//location_to_address(lat, lon)
 		var options_select = {
 		    onSelect: getCoordinates,
 		};
@@ -231,7 +334,7 @@
 		    lonlatclone = lonlat.clone()
 		    lonlatclone.transform(brit, google)
                     
-                    alert("You clicked near " + lonlatclone.lat + " N, " +
+                    console.log("You clicked near " + lonlatclone.lat + " N, " +
                                               + lonlatclone.lon + " E");
                 }
 
@@ -279,9 +382,37 @@
 		var features = getFeaturesForPopup(map.getProjectionObject())
 
 
+		//Popup for trips
+		trip_feature = new OpenLayers.Layer.Vector("Trips", 
+			{
+			  styleMap:  new OpenLayers.StyleMap(style),
+			  rendererOptions: { zIndexing: true },
+			  eventListeners:{
+			    'featureselected':function(evt){
+				var feature = evt.feature;
+				var popup = new OpenLayers.Popup.FramedCloud("popup",
+				    //feature.geometry.getBounds().getCenterLonLat(),
+                                    OpenLayers.LonLat.fromString(feature.geometry.getVertices()[0].toShortString()),
+				    null,
+				    "<p>Hello World</p><b>${activity}</b>",//get_template_trip(feature),
+				    null,
+				    true, onPopupCloseTrip
+				);
+				feature.popup = popup;
+				map.addPopup(popup);
+			    },
+			    'featureunselected':function(evt){
+				var feature = evt.feature;
+				map.removePopup(feature.popup);
+				feature.popup.destroy();
+				feature.popup = null;
+			    }
+			  }
+			});
+
 		//Popups for places
 		if(features.length > 0){
-			locations = new OpenLayers.Layer.Vector("Places",{
+			locations = new OpenLayers.Layer.Vector("Places",{ rendererOptions: { zIndexing: true },
 			  eventListeners:{
 			    'featureselected':function(evt){
 				var feature = evt.feature;
@@ -320,16 +451,38 @@
 			map.addControl(selector);
 		}
 
+
                 for (var i = 0; i < trips.length; i++) {
                 
+		    //Layers for travel mode segments and locations
 	       	    map.addLayer(vehicle);
-	       	    //map.addLayer(locations);
 	       	    map.addLayer(bike);
 	       	    map.addLayer(unknown);
 	            map.addLayer(walking);
 	            map.addLayer(still);
+
+		    //Trip layer for one trip
+	       	    map.addLayer(trip_feature);
+		    var trip_selector = new OpenLayers.Control.SelectFeature(trip_feature,{
+			autoActivate:true
+		    }); 
+
+		    function onPopupCloseTrip(event) {
+			trip_selector.unselectAll();
+		    }
+	       	    map.addControl(trip_selector);
+
+		    //Adding places on top
+	       	    map.addLayer(locations);
+		    var vecLyr = map.getLayersByName('Trips')[0];
+		    //map.raiseLayer(vecLyr, map.layers.length);
+		    map.setLayerIndex(vecLyr, 0);
 	        	    
 		    var featureCollection = trips[i];
+
+		    var geojson = geojson_format.read(featureCollection)
+		    trip_feature.addFeatures(geojson);
+
                     var features = featureCollection.features;
 
 		    if (features.length > 0) {

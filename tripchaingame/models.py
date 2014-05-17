@@ -32,8 +32,12 @@ class Trip(models.Model):
     user_id = models.CharField()
     started_at = models.DateTimeField()
     trip = DictField()
+    original_trip = DictField(null=True)
     client_version = models.CharField()
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+    distance = models.FloatField(default=0.00)
+    trip_time = models.CharField()
+    speed = models.FloatField(default=0.00)
 
     locations = ListField(EmbeddedModelField(Location), null=True)
     activities = ListField(EmbeddedModelField(Activity), null=True)

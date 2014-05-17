@@ -41,6 +41,9 @@
 					    'WK': 'Work',
 					    'SC': 'School'
 					};
+					
+					var trip_data = {{trip_data|safe}};
+					console.log(trip_data);
         			console.log({{places|safe}});
         			
         			known_place_icon = '{{STATIC_URL}}';
@@ -59,26 +62,46 @@
         	}
         }
                 
-       	function get_template(feature){
-			var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";
-			var token = "{% csrf_token %}";
-			var default_template = "<input type='hidden' name='address' id='address' value='"+feature.attributes.Address+"'/><div style='font-size:.8em'>Coordinates: " + feature.attributes.Coordinates +"<br>Address: " + feature.attributes.Address+"</div>";
-			var size = locs.length;
-			var par_address = "&quot;"+feature.attributes.Address+"&quot;";
-			var select_template = "<select id='location_type' onChange='do_save_location_type("+par_address+");'><option value='UN'>Select location</option>";
-			    for(var i = 0; i < size; i++) {
-			    	if(feature.attributes.type == locs[i]) {
-				    	select_template = select_template+"<option value='"+locs[i]+"' selected>"+locs_map[locs[i]]+"</option>";
-				    } else {
-				    	select_template = select_template+"<option value='"+locs[i]+"'>"+locs_map[locs[i]]+"</option>";
-				    }
-			    }
-			select_template = select_template+"</select></form>";	
-			var template = "";
-			//console.log("Bowie "+feature.attributes.type);
+	function get_template(feature){
+		var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";
+		var token = "{% csrf_token %}";
+		var default_template = "<input type='hidden' name='address' id='address' value='"+feature.attributes.Address+"'/><div style='font-size:.8em'>Coordinates: " + feature.attributes.Coordinates +"<br>Address: " + feature.attributes.Address+"</div>";
+		var size = locs.length;
+		var par_address = "&quot;"+feature.attributes.Address+"&quot;";
+		var select_template = "<select id='location_type' onChange='do_save_location_type("+par_address+");'><option value='UN'>Select location</option>";
+		for(var i = 0; i < size; i++) {
+			if(feature.attributes.type == locs[i]) {
+				select_template = select_template+"<option value='"+locs[i]+"' selected>"+locs_map[locs[i]]+"</option>";
+			} else {
+				select_template = select_template+"<option value='"+locs[i]+"'>"+locs_map[locs[i]]+"</option>";
+			}
+		}
+		select_template = select_template+"</select></form>";	
+		var template = "";
 			
-			template = form_template+token+default_template+select_template;
-			return template;
+		template = form_template+token+default_template+select_template;
+		return template;
+	}
+	
+	function get_template_trip(feature){
+		var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";
+		var token = "{% csrf_token %}";
+		var default_template = "<input type='hidden' name='address' id='address' value='"+feature.attributes.Address+"'/><div style='font-size:.8em'>Coordinates: " + feature.attributes.Coordinates +"<br>Address: " + feature.attributes.Address+"</div>";
+		var size = locs.length;
+		var par_address = "&quot;"+feature.attributes.Address+"&quot;";
+		var select_template = "<select id='location_type' onChange='do_save_location_type("+par_address+");'><option value='UN'>Select location</option>";
+		for(var i = 0; i < size; i++) {
+			if(feature.attributes.type == locs[i]) {
+				select_template = select_template+"<option value='"+locs[i]+"' selected>"+locs_map[locs[i]]+"</option>";
+			} else {
+				select_template = select_template+"<option value='"+locs[i]+"'>"+locs_map[locs[i]]+"</option>";
+			}
+		}
+		select_template = select_template+"</select></form>";	
+		var template = "<p>Hello World</p><b>${.activity}</b>";
+			
+		//template = form_template+token+default_template+select_template;
+		return template;
 	}
 	
 	function get_csrf_token() {
@@ -141,8 +164,6 @@
                    					<input type="image" src="{{STATIC_URL}}{{place.type}}.png" class="home_button" title="Center map on {{place.address}}" onclick="center_map({{place.lon}}, {{place.lat}})" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
                    				{% endif %}
                   			{% endfor %}
-                  		{% else %}
-                  			<input type="button" class="menu_button" id="get_places" onclick="do_place_data_analysis()" value="Places: No new trips">
                   		{% endif %}
                   	{% endif %}
                 </div>
@@ -151,33 +172,30 @@
         	</div>
 	            <div id="map">
 	            </div>
-	            <!--<div id="bubbles">
-	            	<p class="speech">SitePoint Rocks!</p>
-	            </div>-->
 	            <div id="key">
 	            	<span class="plaintextHeader"> Vector visibility setup </span>
 	            	<span class="plaintext">
-						<input name="walk" type="checkbox" class="newstext" id="walk"  checked>
+						<input name="walk" type="checkbox" class="newstext" id="walk"  >
 						Walking trips
 					</span>
 					<span class="plaintext">
-						<input name="bike" type="checkbox" class="newstext" id="bike"  checked>
+						<input name="bike" type="checkbox" class="newstext" id="bike"  >
 						Bike trips
 					</span>
 					<span class="plaintext">
-						<input name="still" type="checkbox" class="newstext" id="still" checked>
+						<input name="still" type="checkbox" class="newstext" id="still" >
 						Still
 					</span>
 					<span class="plaintext">
-						<input name="unknown" type="checkbox" class="newstext" id="unknown" checked>
+						<input name="unknown" type="checkbox" class="newstext" id="unknown" >
 						Unknown
 					</span>
 					<span class="plaintext">
-						<input name="vehicle" type="checkbox" class="newstext" id="vehicle" checked>
+						<input name="vehicle" type="checkbox" class="newstext" id="vehicle" >
 						Vehicle
 					</span>
 					<span class="plaintext">
-						<input name="locations" type="checkbox" class="newstext" id="locations" checked>
+						<input name="locations" type="checkbox" class="newstext" id="locations" >
 						Places
 					</span>
 					
@@ -200,6 +218,11 @@
 					    <input type="submit" value="Search" id="submit" >
 					</form>
 					{% endif %}
+					<span class="plaintextHeader"> Trip setup </span>
+	            	<span class="plaintext">
+						<input name="trip" type="checkbox" class="newstext" id="trip"  checked>
+						Trips
+					</span>
 				</div>
 			</div>
         </body>
