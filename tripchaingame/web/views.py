@@ -37,6 +37,26 @@ def _uid_from_user(user):
 def home(request):
     return render_to_response('index.html')
 
+
+@login_required
+def road_segment(request):
+    uid = _uid_from_user(request.user)
+    trips = Trip.objects.filter(user_id=uid, client_version="0.8").order_by('-started_at')[:5]
+
+    body = ""
+    for trip in trips:
+        body += "<h2>" + str(trip.started_at) + "</h2><ol>"
+
+        for rs in trip.roads:
+            if rs.addresses:
+                body += "<li>" + rs.street + ": " \
+                        + str([int(a.house_number) for a in rs.addresses if a.house_number]) \
+                        + "</li>"
+
+        body += "</ol>"
+
+    return HttpResponse(body)
+
 @login_required
 def locations_view(request):
     if request.user.is_authenticated():
