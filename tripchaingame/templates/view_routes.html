@@ -61,6 +61,58 @@
         		console.log("map is not defined");
         	}
         }
+        
+       function getTripSegmentTemplate(feature){
+		var par_kms = feature.attributes.distance;
+		var par_time = feature.attributes.time;
+		var par_speed = feature.attributes.speed;
+		var par_activity = feature.attributes.activity;
+		var par_co2 = (feature.attributes.co2/1000);
+		var transport = feature.attributes.transport;
+		var par_arr = "";
+		if (transport){
+			par_arr = transport.split(" ");
+		}
+		var par_transport = "";
+		if (par_arr.length > 0){
+			par_transport = par_arr[0];
+		}
+		var par_transport_mode = feature.attributes.transportMode;
+		var par_totals = feature.attributes.trip_totals;
+		
+		var trip_totals = "<div><p>Trip totals: "+par_totals+"</p></div>"
+		
+		
+		var arr;
+		if(par_totals){
+			arr = par_totals.split(";");
+		} else {
+			arr = ['-','-','-','-'];
+		}
+		var size = arr.length;
+		var table = "";
+		
+		if (size > 2){
+			table = "<table><tr><td></td><td><b>Trip total</b></td><td><b>Trip segment ("+par_transport_mode+", "+par_transport+")</b></td></tr>";
+			table = table + "<tr><td><b>Distance (km)</b></td><td>"+roundToTwo(arr[0])+" km</td><td>"+roundToTwo(par_kms)+" km</td></tr>";
+			table = table + "<tr><td><b>Time (h)</b></td><td>"+roundToTwo(arr[1])+" h</td><td>"+roundToTwo(par_time)+" h</td></tr>";
+			table = table + "<tr><td><b>Speed (km/h)</b></td><td>"+roundToTwo(arr[2])+" km/h</td><td>"+roundToTwo(par_speed)+" km/h</td></tr>";
+			table = table + "<tr><td><b>CO2 emissions (kg)</b></td><td>"+roundToTwo((arr[3]/1000))+" kg</td><td>"+roundToTwo(par_co2)+" kg</td></tr></table>";
+		}
+		
+		return table;
+	}
+	
+	function isNumber(n) {
+	  return !isNaN(parseFloat(n)) && isFinite(n);
+	}
+	
+	function roundToTwo(num) { 
+		if(isNumber(num)) {   
+	    	return +(Math.round(num + "e+2")  + "e-2");
+	    }
+	    return num;
+	}
                 
 	function get_template(feature){
 		var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";

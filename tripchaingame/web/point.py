@@ -41,11 +41,6 @@ class LocationPoint:
     
     def set_coords(self, coordinates):
         self._coords.append(coordinates)
-        #if coordinates not in self._coords:
-        #    logger.warn("LocationPoint (%s) %s not found from coordinates table" % (self.get_address(),coordinates))
-        #    self._coords.append(coordinates)
-        #else:
-        #    logger.warn("LocationPoint %s found from coordinates table" % coordinates)
     
     def get_address(self):
         return self._address

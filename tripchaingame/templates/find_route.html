@@ -15,10 +15,15 @@
 		
 		
 		.home_button{
-		    //background: url("{{STATIC_URL}}known.png") no-repeat left top;
 		    cursor:pointer;
 		    border:none;
 		    width: 32px;
+		}
+		
+		.coordinate_button{
+		    cursor:pointer;
+		    border:none;
+		    width: 20px;
 		}
 		
 		/*.home_button:hover  /* use Dot here */
@@ -85,6 +90,42 @@
 		return template;
 	}
 	
+	function getTripSegmentTemplate(feature){
+		var par_kms = feature.attributes.distance;
+		var par_time = feature.attributes.time;
+		var par_speed = feature.attributes.speed;
+		var par_activity = feature.attributes.activity;
+		var par_co2 = (feature.attributes.co2/1000);
+		var transport = feature.attributes.transport;
+		var par_arr = transport.split(" ");
+		var par_transport = "";
+		if (par_arr.length > 0){
+			par_transport = par_arr[0];
+		}
+		var par_transport_mode = feature.attributes.transportMode;
+		var par_totals = feature.attributes.trip_totals;
+		
+		var trip_totals = "<div><p>Trip totals: "+par_totals+"</p></div>"
+		
+		var arr = par_totals.split(";");
+		var size = arr.length;
+		var table = "";
+		
+		if (size > 2) {
+			table = "<table><tr><td></td><td><b>Trip total</b></td><td><b>Trip segment ("+par_transport_mode+", "+par_transport+")</b></td></tr>";
+			table = table + "<tr><td><b>Distance (km)</b></td><td>"+roundToTwo(arr[0])+" km</td><td>"+par_kms.toFixed(2)+" km</td></tr>";
+			table = table + "<tr><td><b>Time (h)</b></td><td>"+roundToTwo(arr[1])+" h</td><td>"+par_time.toFixed(2)+" h</td></tr>";
+			table = table + "<tr><td><b>Speed (km/h)</b></td><td>"+roundToTwo(arr[2])+" km/h</td><td>"+par_speed.toFixed(2)+" km/h</td></tr>";
+			table = table + "<tr><td><b>CO2 emissions (kg)</b></td><td>"+roundToTwo((arr[3]/1000))+" kg</td><td>"+par_co2.toFixed(2)+" kg</td></tr></table>";
+		}
+			
+		return table;//trip_totals+template;
+	}
+	
+	function roundToTwo(num) {    
+	    return +(Math.round(num + "e+2")  + "e-2");
+	}
+	
 	function get_template_trip(feature){
 		var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";
 		var token = "{% csrf_token %}";
@@ -100,7 +141,7 @@
 			}
 		}
 		select_template = select_template+"</select></form>";	
-		var template = "<p>Hello World</p><b>${.activity}</b>";
+		var template = "";//"<p>Hello World</p><b>${.activity}</b>";
 			
 		//template = form_template+token+default_template+select_template;
 		return template;
@@ -165,58 +206,40 @@
 	            <div id="map">
 	            </div>
 	            <div id="key">
-	            	<span class="plaintextHeader"> Vector visibility setup </span>
-					<span class="plaintext">
-						<input name="locations" type="checkbox" class="newstext" id="locations" checked>
-						Places
-					</span>
 					
-					{% if user.is_authenticated %}
-					
-					<form method="POST">
-					    {% csrf_token %}
-					    Select dates: <input type="text" name="start_date" style="width:80px" id="start_date" value="{{start_date}}"> - 
-					    <input type="text" name="end_date" style="width:80px" id="end_date" value="{{end_date}}">
-					    <input type="submit" value="Search" id="submit" >
-					</form>
-					{% endif %}
-					<span class="plaintextHeader"> Trip setup </span>
-	            	<span class="plaintext">
-						<input name="trip" type="checkbox" class="newstext" id="trip"  checked>
-						Trips
-					</span>
+					<span class="plaintextHeader"> Search routes </span>
 					<form method="POST">
 					    {% csrf_token %}
 					    <div class="line">
-					    FROM: <input type="text" name="start_place" style="width:80px" id="start_place" value="{{start_place}}"> 
-					    <img src="{{STATIC_URL}}OpenLayers-2.13.1/img/marker.png" onclick="from_me('null', 'start_place'); this.src='{{STATIC_URL}}OpenLayers-2.13.1/img/marker-blue.png'">
+					    FROM: <input type="text" name="start_place" style="width:180px" id="start_place" value="{{start_place}}"> 
+					    <img src="{{STATIC_URL}}OpenLayers-2.13.1/img/marker.png" class="coordinate_button" title="Pin point start point from map" onclick="from_me('null', 'start_place'); this.src='{{STATIC_URL}}OpenLayers-2.13.1/img/marker-blue.png'">
 				    	{% if user.is_authenticated %}
 	                   	<input type="hidden" id="uid" value="{{uid}}">
 	                   		{% if places != None %}
 	                   			{% for place in places_objects %}
 	                   				{% if places != "UN" %}
-	                   					<img src="{{STATIC_URL}}{{place.type}}.png" class="home_button" title="Find routes from {{place.address}}" onclick="from_me('{{place.lon}},{{place.lat}}', 'start_place'); this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
+	                   					<img src="{{STATIC_URL}}{{place.type}}.png" class="coordinate_button" title="Find routes from {{place.address}}" onclick="from_me('{{place.lon}},{{place.lat}}', 'start_place'); this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
 	                   				{% endif %}
 	                  			{% endfor %}
 	                  		{% endif %}
 	                  	{% endif %} </div>
-	                  	<img src="{{STATIC_URL}}known.png" class="home_button" onclick="map_pointer_switch('start_place');"><br><br>
+	                  	<img src="{{STATIC_URL}}known.png" class="coordinate_button" onclick="map_pointer_switch('start_place');"><br>
 	                  	<div class="line">
-					    TO: <input type="text" name="end_place" style="width:80px" id="end_place" value="{{end_place}}"> <br>
-					    <img src="{{STATIC_URL}}OpenLayers-2.13.1/img/marker.png" onclick="from_me('null', 'end_place')">
+					    TO: <input type="text" name="end_place" style="width:180px" id="end_place" value="{{end_place}}">
+					    <img src="{{STATIC_URL}}OpenLayers-2.13.1/img/marker.png" class="coordinate_button" title="Pin point end point from map" onclick="from_me('null', 'end_place')">
 				    	{% if user.is_authenticated %}
 	                   	<input type="hidden" id="uid" value="{{uid}}">
 	                   		{% if places != None %}
 	                   			{% for place in places_objects %}
 	                   				{% if places != "UN" %}
-	                   					<img src="{{STATIC_URL}}{{place.type}}.png" class="home_button" title="Find routes from {{place.address}}" onclick="from_me('{{place.lon}},{{place.lat}}', 'end_place'); this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
+	                   					<img src="{{STATIC_URL}}{{place.type}}.png" class="coordinate_button" title="Find routes from {{place.address}}" onclick="from_me('{{place.lon}},{{place.lat}}', 'end_place'); this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
 	                   				{% endif %}
 	                  			{% endfor %}
 	                  		{% endif %}
 	                  	{% endif %} </div> 
-	                  	<img src="{{STATIC_URL}}known.png" class="home_button" onclick="map_pointer_switch('end_place');"><br>
-					    Select date: <input type="text" name="trip_date" style="width:80px" id="trip_date" value="{{trip_date}}">
-					    Select time: <input type="time" name="start_time" style="width:80px" id="start_time" value="{{start_time}}">
+	                  	<img src="{{STATIC_URL}}known.png" class="coordinate_button" onclick="map_pointer_switch('end_place');"><br>
+					    Select date: <input type="text" name="trip_date" style="width:80px" id="trip_date" value="{{trip_date}}"><br>
+					    Select time: <input type="time" name="start_time" style="width:180px" id="start_time" value="{{start_time}}">
 					    <input type="submit" value="Search" id="submit" >
 					</form>
 				</div>

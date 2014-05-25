@@ -299,6 +299,27 @@
 	    return features;
 	}
 
+	//getTripFeaturesForPopup
+	function getTripFeaturesForPopup(to){
+	    var toMercator = OpenLayers.Projection.transforms['EPSG:4326'][to];
+	    var features = []; 
+	    var size = trips.length;   
+	    for(var i = 0; i < size; i++) {
+		place = places[i].split(";");
+		var coords = place[0]+","+place[1]
+		features[i] = new OpenLayers.Feature.Vector(
+		        toMercator(new OpenLayers.Geometry.Point(
+		            place[0], place[1])), 
+		        {
+		            Address : place[3],
+		            Coordinates : coords,
+		            type : place[4],
+		        }, get_location_icon(place[4]));
+	    }
+	    return features;
+	}
+
+
 	function getCoordinates(e) {
 		 // this should work
 		 var lonlat = map.getLonLatFromViewPortPx(e.xy);
@@ -409,6 +430,7 @@
                 });
 
 		var features = getFeaturesForPopup(map.getProjectionObject())
+		var tripfeatures = "";//getTripFeaturesForPopup(map.getProjectionObject())
 
 		//Popup for trips
 		if(trips.length > 0){
@@ -423,7 +445,7 @@
 				    //feature.geometry.getBounds().getCenterLonLat(),
                                     OpenLayers.LonLat.fromString(feature.geometry.getVertices()[0].toShortString()),
 				    null,
-				    "<p>Hello World</p><b>${activity}</b>",//get_template_trip(feature),
+				    getTripSegmentTemplate(feature),//get_template_trip(feature),
 				    null,
 				    true, onPopupCloseTrip
 				);
@@ -438,6 +460,7 @@
 			    }
 			  }
 			});
+			//trip_feature.addFeatures(tripfeatures);
 		}
 
 		//Popups for places

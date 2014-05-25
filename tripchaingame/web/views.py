@@ -74,15 +74,20 @@ def view_find_route(request):
     if request.method == 'POST':
         start_date=""
         start_time=""
+        trip_date =""
         if 'trip_date' in request.POST and is_empty(request.POST['trip_date']) == False: 
             start_date=str(request.POST['trip_date'])
             if 'start_time' in request.POST and is_empty(request.POST['start_time']) == False:
                 start_time=str(request.POST['start_time'])
             else:
                 start_time = datetime.datetime.now().time().strftime("%H:%M:%S")
+            
+            trip_date=start_date
             start_date = start_date + " " +  start_time
         else:
             start_date = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+            trip_date=datetime.datetime.now().strftime("%m/%d/%Y")
+            start_time = datetime.datetime.now().time().strftime("%H:%M:%S")
             
         if 'start_place' in request.POST and 'end_place' in request.POST:
             start_place=str(request.POST['start_place'])
@@ -91,7 +96,7 @@ def view_find_route(request):
             #if not search location, assume that it's an address
             #in case of an error return error message
             
-        context['trip_date'] = start_date
+        context['trip_date'] = trip_date
         context['start_time'] = start_time
         
         if len(start_place)>0 and len(end_place)>0:
@@ -118,16 +123,45 @@ def view_find_route(request):
                     
                 logger.debug("Start point: %s" % start_location)
                 logger.debug("End point: %s" % end_location)
+                
+                context["start_place"] = start_location.get_address()
+                context["end_place"] = end_location.get_address()
                     
                 start_coords = start_location.pop_coords()
                 end_coords = end_location.pop_coords()
                 
-                logger.debug("Start %s" % start_coords)
-                logger.debug("ENd %s" % end_coords)
-                
                 if is_empty(start_coords) == False and is_empty(end_coords) == False:
+                    #get routes from reittiopas
                     result = reittiopas.get_route_information(start_coords, end_coords, date1, walk_cost, change_margin)
-                    routes = process_results(result)
+                    routes, features = process_results(result)
+                    context['features'] = features
+                    
+                    if request.user.is_authenticated():
+                        #get routes from db only for authenticated
+                        uid = _uid_from_user(request.user)
+                        trip_list = Trip.objects.filter(user_id=uid)
+                        trips = []
+                        for trip in trip_list:
+                            locations = trip.locations
+                            if is_empty(locations) == False:
+                                first, last = locations[0], locations[-1]
+                                start = start_coords.split(',')
+                                end = end_coords.split(',')
+                                
+                                slon, slat = start[0], start[-1]
+                                elon, elat = end[0], end[-1]
+                                
+                                if (first.longitude == slon and first.latitude == slat) and (last.longitude == elon and last.latitude == elat):
+                                    if is_empty(trip.detailed_trip) == False:
+                                        routes.append(trip.detailed_trip)
+                                        logger.debug("Trip is not empty")
+                                    else:
+                                        routes.append(trip.trip)
+                                        logger.debug("Trip is empty")
+                                
+                        
+                    
+                    
                 else:
                     routes = "{}"
             
@@ -252,6 +286,7 @@ def route_analysis_view(request):
         
         logger.warn("Starting trip json analysis")
         
+        trips = Trip.objects.filter(user_id=uid)
         _modify_trip(trips)
         
         if points != None:
@@ -345,19 +380,19 @@ def view_trips(request):
                 context['places'] = _get_places(uid) #_get_places_as_objects
                 context['places_objects'] = _get_places_as_objects(uid) #_get_places_as_objects
                 trip_list = Trip.objects.filter(user_id=uid,started_at__range=[date1, date2])
-                trips = [t.trip for t in trip_list]
+                trips = [t.detailed_trip for t in trip_list]
                 context['trips'] = json.dumps(trips)
                 context['trip_data'] = _get_trip_data(trip_list)
                 context['place_analysis'] = places.get_count_of_new_trips(uid)
             else:
-                trips = [t.trip for t in Trip.objects.filter(started_at__range=[date1, date2])]
+                trips = [t.detailed_trip for t in Trip.objects.filter(started_at__range=[date1, date2])]
                 context['trips'] = json.dumps(trips)
                 context['places'] = ""
         else:
             if request.user.is_authenticated():
                 uid = _uid_from_user(request.user)
                 trip_list = Trip.objects.filter(user_id=uid)
-                trips = [t.trip for t in trip_list]
+                trips = [t.detailed_trip for t in trip_list]
                 context['uid'] = uid
                 context['trips'] = json.dumps(trips)
                 context['trip_data'] = _get_trip_data(trip_list)
@@ -366,14 +401,14 @@ def view_trips(request):
                 context['place_analysis'] = places.get_count_of_new_trips(uid)
                 
             else:
-                trips = [t.trip for t in Trip.objects.all()]
+                trips = [t.detailed_trip for t in Trip.objects.all()]
                 context['trips'] = json.dumps(trips)
                 context['places'] = ""
     else:
         if request.user.is_authenticated():
             uid = _uid_from_user(request.user)
             trip_list = Trip.objects.filter(user_id=uid)
-            trips = [t.trip for t in trip_list]
+            trips = [t.detailed_trip for t in trip_list]
             context['uid'] = uid
             context['trips'] = json.dumps(trips)
             context['trip_data'] = _get_trip_data(trip_list)
@@ -381,7 +416,7 @@ def view_trips(request):
             context['places_objects'] = _get_places_as_objects(uid)
             context['place_analysis'] = places.get_count_of_new_trips(uid)
         else:
-            trips = [t.trip for t in Trip.objects.all()]
+            trips = [t.detailed_trip for t in Trip.objects.all()]
             context['trips'] = json.dumps(trips)
             context['places'] = ""
         
@@ -449,7 +484,7 @@ def _modify_trip(trips_json):
     
     for trip in trips_json:
         #trip time
-        if bool(trip.detailed_trip) == False:
+        if bool(trip.detailed_trip) == True:
             trip_time = 0
             kms = None
             v = 0
@@ -470,14 +505,16 @@ def _modify_trip(trips_json):
             #travel mode recognition
             _do_travel_recognition(features, trip.started_at)
             
-            #build geojson
-            geojson = build_geojson_trip(features)
-            
             '''Requires first analysis of transport type and only then we can evaluate simply the co2 costs'''
             emissions = _calculate_co2_emissions(features)
             
             if trip_time != 0:
                 v = _calculate_avg_speed(trip_time, km)
+            
+            #build geojson
+            totals = "%s;%s;%s;%s" % (km, trip_time, v, emissions)
+            geojson = build_geojson_trip(features, totals)
+            
             
             logger.info("time=%s, km=%.5f, speed=%.2f" % (trip_time, km, v))
             
@@ -663,17 +700,18 @@ def _get_location_coordinates(feature_array, last, end_time, start_time):
         
     return distance, features
 
-def build_geojson_trip(features):
-    geojson_geometry = _build_geometries_geojson(features)
+def build_geojson_trip(features, totals):
+    geojson_geometry = _build_geometries_geojson(features, totals)
     trip = {
             "type": "FeatureCollection", 
             "features": geojson_geometry, 
             }
     return trip
 
-def _build_geometries_geojson(features):
+def _build_geometries_geojson(features, totals):
     geos = []
     for feature in features:
+        feature.set_trip_total_avg_properties(totals)
         geos.append(feature.generate_geojson())
         
     return geos
@@ -844,14 +882,18 @@ def _get_transportation_type(start, end, time1):
 def process_results(result):
     
     trips = []
-    features = Features()
+    feature_array = []
     
     for r in range(0,len(result)):
         for j in range(0,len(result[r])):
+            features = Features()
             trip = features._process_reittiopas_results_to_features(result[r][j])
             trips.append(trip)
+            feature_array.append(features)
             
-    return trips
+            
+    return trips, feature_array
+
     
     #Array of routes, get route
     '''

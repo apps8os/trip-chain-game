@@ -64,6 +64,8 @@ class Features:
         geojson_geometry = []
         
         for feature in self.get_features():
+            total = "%s;%s;%s;%s" % (self.get_km(), self.get_time(), self.get_speed(), self.get_co2())
+            feature.set_trip_total_avg_properties(total)
             geojson_geometry.append(feature.generate_geojson())
         
         trip = {
@@ -112,6 +114,7 @@ class Features:
         #Array of routes, get route
         avg_km = ""
         avg_speed = ""
+        avg_co2 = 0.00
         avg_time = ""
         features = []
         #route
@@ -163,6 +166,7 @@ class Features:
                     hours = float(float(time) / 3600)
                     speed = float(feature.get_km() / hours)
                     feature.set_speed(speed)
+                    feature.set_time(hours)
                 if "code" in segment:
                     code = str(segment["code"])
                     if len(code) > 1:
@@ -172,10 +176,13 @@ class Features:
                             feature.set_transport(transport)
                             feature.set_transport_type(type)
                 features.append(feature)
+                avg_co2 = avg_co2 + float(feature.get_co2())
             #recorde trip route
         self.set_features(features)
         self.set_km(avg_km)
+        self.set_time(avg_time)
         self.set_speed(avg_speed)
+        self.set_co2(avg_co2)
         
         return self._build_geojson_trip()
         

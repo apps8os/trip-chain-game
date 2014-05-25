@@ -20,6 +20,13 @@ class Feature:
         self._activity = ""
         self._type_of_transport = ""
         self._transport = ""
+        self._trip_total_avg_properties = ""
+        
+    def get_trip_total_avg_properties(self):
+        return self._trip_total_avg_properties
+    
+    def set_trip_total_avg_properties(self, total):
+        self._trip_total_avg_properties = total
         
     def get_coords(self):
         return self._coords
@@ -120,8 +127,10 @@ class Feature:
             'distance': self._km,
             'calories': self._calories,
             'co2': self._co2,
+            'speed': self._speed,
             'transportMode' : self.get_transport_type(),
             'transport' : self.get_transport(),
+            'trip_totals' : self.get_trip_total_avg_properties(),
         }
         
         geometries = {
