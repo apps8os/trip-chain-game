@@ -20,7 +20,9 @@ from tripchaingame.models import Trip
 
 #from tripchaingame.PlaceRecognition import PlaceRecognition
 from placeRecognition import PlaceRecognition
+from reittiopasAPI import ReittiopasAPI
 from feature import Feature
+from features import Features
 #import ..placeRecognition.PlaceRecognition
 
 from mongoengine.django.auth import User
@@ -37,6 +39,149 @@ def _uid_from_user(user):
 def home(request):
     return render_to_response('index.html')
 
+def is_number(s):
+    try:
+        float(s) # for int, long and float
+    except ValueError:
+        try:
+            complex(s) # for complex
+        except ValueError:
+            return False
+
+    return True
+
+def is_empty(string):
+    if string != None:
+        if len(string) > 0:
+            return False
+    return True
+
+
+def contains_coordinates(start):
+    start_numeric = True
+    if len(start) > 0:
+        for item in start:
+            if is_number(item) == False:
+                start_numeric = False
+    return start_numeric
+
+def view_find_route(request):
+    context = {}
+
+    context['plus_scope'] = ' '.join(settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
+    context['plus_id'] = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+    
+    if request.method == 'POST':
+        start_date=""
+        start_time=""
+        if 'trip_date' in request.POST and is_empty(request.POST['trip_date']) == False: 
+            start_date=str(request.POST['trip_date'])
+            if 'start_time' in request.POST and is_empty(request.POST['start_time']) == False:
+                start_time=str(request.POST['start_time'])
+            else:
+                start_time = datetime.datetime.now().time().strftime("%H:%M:%S")
+            start_date = start_date + " " +  start_time
+        else:
+            start_date = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+            
+        if 'start_place' in request.POST and 'end_place' in request.POST:
+            start_place=str(request.POST['start_place'])
+            end_place=str(request.POST['end_place'])
+            #check if numeric coordiates in form lon,lat
+            #if not search location, assume that it's an address
+            #in case of an error return error message
+            
+        context['trip_date'] = start_date
+        context['start_time'] = start_time
+        
+        if len(start_place)>0 and len(end_place)>0:
+            
+            date1 = datetime.datetime.strptime(start_date,"%m/%d/%Y %H:%M:%S")
+
+            reittiopas = ReittiopasAPI()
+            walk_cost=10.0
+            change_margin = 1.0
+            if is_empty(start_place) == False and is_empty(end_place) == False:
+                
+                start = start_place.split(',')
+                end = end_place.split(',')
+                            
+                #Get start and en locations if coordinates
+                if contains_coordinates(start) == True:
+                    start_location = reittiopas.get_reverse_geocode(start_place)
+                else:
+                    start_location = reittiopas.get_geocode(start_place)
+                if contains_coordinates(end) == True:
+                    end_location = reittiopas.get_reverse_geocode(end_place)
+                else:
+                    end_location = reittiopas.get_geocode(end_place)
+                    
+                logger.debug("Start point: %s" % start_location)
+                logger.debug("End point: %s" % end_location)
+                    
+                start_coords = start_location.pop_coords()
+                end_coords = end_location.pop_coords()
+                
+                logger.debug("Start %s" % start_coords)
+                logger.debug("ENd %s" % end_coords)
+                
+                if is_empty(start_coords) == False and is_empty(end_coords) == False:
+                    result = reittiopas.get_route_information(start_coords, end_coords, date1, walk_cost, change_margin)
+                    routes = process_results(result)
+                else:
+                    routes = "{}"
+            
+            if request.user.is_authenticated():
+                places = PlaceRecognition()
+                uid = _uid_from_user(request.user)
+                context['uid'] = uid
+                context['places'] = _get_places(uid) #_get_places_as_objects
+                context['places_objects'] = _get_places_as_objects(uid) #_get_places_as_objects
+                #trip_list = Trip.objects.filter(user_id=uid,started_at__range=[date1, date2])
+                #trips = [t.detailed_trip for t in trip_list]
+                context['new_routes'] = "{}" #json.dumps(trips)
+                context['trip_data'] = 0#_get_trip_data(trip_list)
+                context['place_analysis'] = places.get_count_of_new_trips(uid)
+                context['trips'] = json.dumps(routes)
+            else:
+                context['trips'] = "{}"
+                context['places'] = ""
+                context['new_routes'] = "{}"
+                context['trips'] = json.dumps(routes)
+                context['new_routes'] = "{}" #json.dumps(trips)
+        else:
+            #if route search failed due to lack of parameters
+            if request.user.is_authenticated():
+                places = PlaceRecognition()
+                uid = _uid_from_user(request.user)
+                context['uid'] = uid
+                context['trips'] = "{}" #json.dumps(trips)
+                context['trip_data'] = 0#_get_trip_data(trip_list)
+                context['places'] = _get_places(uid)
+                context['places_objects'] = _get_places_as_objects(uid)
+                context['place_analysis'] = places.get_count_of_new_trips(uid)
+                context['new_routes'] = "{}"
+            else:
+                context['trips'] = "{}"
+                context['places'] = ""
+                context['new_routes'] = "{}"
+    else:
+        if request.user.is_authenticated():
+            places = PlaceRecognition()
+            uid = _uid_from_user(request.user)
+            context['uid'] = uid
+            context['places'] = _get_places(uid)
+            context['places_objects'] = _get_places_as_objects(uid)
+            context['place_analysis'] = places.get_count_of_new_trips(uid)
+            context['trips'] = "{}" #json.dumps(trips)
+            context['trip_data'] = 0#_get_trip_data(trip_list)
+            context['new_routes'] = "{}"
+        else:
+            context['trips'] = "{}"
+            context['places'] = ""
+            context['new_routes'] = "{}"
+        
+    return render_to_response("find_route.html", context, context_instance=RequestContext(request))
 
 @login_required
 def road_segment(request):
@@ -100,15 +245,14 @@ def route_analysis_view(request):
         else:
             trips = Trip.objects.filter(user_id=_uid_from_user(request.user))
         
-        #points = places.point_analysis(trips, uid)
+        points = places.point_analysis(trips, uid)
         points = ""
         context['places'] = points
         context['uid'] = uid
         
         logger.warn("Starting trip json analysis")
         
-        t = Trip.objects.filter(user_id=_uid_from_user(request.user))
-        _modify_trip(t)
+        _modify_trip(trips)
         
         if points != None:
             logger.debug("places = %d" % len(points))
@@ -305,46 +449,128 @@ def _modify_trip(trips_json):
     
     for trip in trips_json:
         #trip time
-        trip_time = 0
-        kms = None
-        v = 0
-        
-        if trip.created_at != None and trip.started_at != None:
-            trip_time = _calculate_trip_time(trip.started_at, trip.created_at)
-        km = 0
-        
-        #trip distance
-        t = trip.trip
-        geo_json_trips = json.dumps(t)
-        items = json.loads(geo_json_trips)
-        feature_array = items["features"]
-        if len(feature_array) > 0:
-            last = len(feature_array)
-            km, features = _get_location_coordinates(feature_array, last, trip.created_at, trip.started_at)
-        
-        for f in features:
-            logger.debug(str(f))
-        '''Requires first analysis of transport type and only then we can evaluate simply the co2 costs'''
-        #emissions = _calculate_co2_emissions(feature_array, last)
-        if trip_time != 0:
-            v = _calculate_avg_speed(trip_time, km)
-        
-        logger.info("time=%s, km=%.5f, speed=%.2f" % (trip_time, km, v))
-        
-        if trip_time != 0:
-            trip.trip_time=str(trip_time)
-        if v != 0.00:
-            trip.speed=v
-        if km != 0.00:
-            trip.distance = km
+        if bool(trip.detailed_trip) == False:
+            trip_time = 0
+            kms = None
+            v = 0
             
-        trip.save()
-        logger.info("saved %s \n" % (trip.trip_time))
-            #trip.update()
+            if trip.created_at != None and trip.started_at != None:
+                trip_time = _calculate_trip_time(trip.started_at, trip.created_at)
+            km = 0
+            
+            #trip distance
+            t = trip.trip
+            geo_json_trips = json.dumps(t)
+            items = json.loads(geo_json_trips)
+            feature_array = items["features"]
+            if len(feature_array) > 0:
+                last = len(feature_array)
+                km, features = _get_location_coordinates(feature_array, last, trip.created_at, trip.started_at)
+            
+            #travel mode recognition
+            _do_travel_recognition(features, trip.started_at)
+            
+            #build geojson
+            geojson = build_geojson_trip(features)
+            
+            '''Requires first analysis of transport type and only then we can evaluate simply the co2 costs'''
+            emissions = _calculate_co2_emissions(features)
+            
+            if trip_time != 0:
+                v = _calculate_avg_speed(trip_time, km)
+            
+            logger.info("time=%s, km=%.5f, speed=%.2f" % (trip_time, km, v))
+            
+            if trip_time != 0:
+                trip.trip_time=str(trip_time)
+            if v != 0.00:
+                trip.speed=v
+            if km != 0.00:
+                trip.distance = km
+            if geojson:
+                trip.detailed_trip = geojson
+            if emissions:
+                trip.co2_emissions = emissions
+                
+            trip.save()
+            logger.info("saved %s \n" % (trip.trip_time))
     
-    modified_trip_json = [t.trip for t in trips_json]
+    return trips_json
+
+def _calculate_co2_emissions(features):
+    emissions = 0.00
+    for feature in features:
+        emissions = emissions + float(feature.get_co2())
+        
+    return emissions
+
+def _do_travel_recognition(features, time):
+    travels = []
+    activity = ""
+    start = ""
+    end = ""
+    leg = []
+    kms = 0.00
+    clean = False
+    for feature in features:
+        activity = feature.get_activity()
+
+        if activity == "in-vehicle":
+            clean = True
+        elif activity == "on-foot" or activity == "on-bicycle":
+            clean = False
+            feature.set_transport_type(activity)
+        
+        if activity == "in-vehicle" or (activity == "still" and (clean == True)):
+            leg.append(feature)
+            kms = kms + feature.get_km()
+        elif activity != "in-vehicle" and activity != "still":
+            if len(leg) > 0 and kms > 0.2:
+                travels.append(leg)
+                leg = []
+                kms = 0.00
     
-    return modified_trip_json
+    if travels != None:
+        if len(travels)>1:
+            for leg in travels:
+                first = leg[0].get_coords()
+                last = leg[-1].get_coords()
+                
+                if first != None:
+                    if len(first) > 1 and leg[0].get_type() != "Point":
+                        start = first[0]
+                    else:
+                        start = first
+                else:
+                    start = first
+                
+                if last != None and leg[-1].get_type() != "Point":
+                    if len(last) > 1:
+                        end = last[-1]
+                    else:
+                        end = last
+                else:
+                    end = last
+                        
+                
+                start_point = "%s,%s" % (start[0], start[-1])
+                end_point = "%s,%s" % (end[0], end[-1])
+                
+                logger.info("Coordinates to start %s and end %s" % (start_point, end_point))
+                transport, type = _get_transportation_type(start_point, end_point, time)
+                
+                features = _update_feature_list(features, leg, transport, type)
+                
+    return features
+                
+                    
+def _update_feature_list(features, list, transport, type):
+    for item in list:
+        if item in features:
+            i = features.index(item)
+            features[i].set_transport(transport)
+            features[i].set_transport_type(type)
+    return features
 
 
 def get_trip_segment_time(feature_array, last, end_time, i, start_time):
@@ -413,7 +639,7 @@ def _get_location_coordinates(feature_array, last, end_time, start_time):
                 for coord in coords:
                     previous_location = present_location
                     present_location = coord
-                    logger.info(present_location, previous_location)
+                    #logger.info(present_location, previous_location)
                     if previous_location != None and present_location != None:
                         if len(present_location) > 0 and len(previous_location) > 0:
                             km=kms*_calculate_trip_distance(present_location[1], present_location[0], previous_location[1],previous_location[0])
@@ -432,27 +658,25 @@ def _get_location_coordinates(feature_array, last, end_time, start_time):
         if (time != "" or time != None) and (seg_km > 0.00):
             speed = _calculate_avg_speed(time, km)
         
-        #Calculate afterwards    
-        #if seg_km > 0.00 and activity == "in-vehicle":
-       #     transport = _get_transportation_type(coords, time1, time2)
-       #     co2 = _calculate_co2_emissions(transport_km, transport)
-
-        #feature.set_transport(transport)
-        #feature.set_co2(co2)        
         feature.set_speed(speed)
-        
         features.append(feature)
-    #logger.info("Distance %.4f km" % distance)             
+        
     return distance, features
 
-def build_geojson_trip(trips_json):
-    
-    
+def build_geojson_trip(features):
+    geojson_geometry = _build_geometries_geojson(features)
     trip = {
             "type": "FeatureCollection", 
-            "features": features, 
+            "features": geojson_geometry, 
             }
-    return 0
+    return trip
+
+def _build_geometries_geojson(features):
+    geos = []
+    for feature in features:
+        geos.append(feature.generate_geojson())
+        
+    return geos
 
 
 '''
@@ -529,14 +753,6 @@ def _calculate_trip_distance(lat1, lon1, lat2, lon2):
             return 0
     
 
-def _calculate_co2_emissions(car_km, bus_km, travelers, suomenlinna_ferry_km):
-    travelers = 1
-    car = (171 / travelers) * car_km
-    bus = 73 * bus_km
-    suomenlinna_ferry = 389 * suomenlinna_ferry_km
-    
-    return 0
-
 def _calculate_calories(km, bike_km, walk_km):
     bike = 25 * bike_km
     walk = 50 * walk_km
@@ -571,19 +787,127 @@ def _get_trip_data(trips):
         
     return modified_trip_json
 
-def _get_transportation_type(coords, time1, time2):
+
+def interpret_type_of_transport(n, type):
+    string = ""
+    if (n == '1' or n == '2' or n == '4' or n == '5' or n == '7') and (type == '1' or type == '4' or type == '3' or type == '1' or type == '5' or type == '8'):
+        string = "BUS"
+    elif n == '1' and type == '2':
+        string = "TRAM"
+    elif type == '12' or type == '13' or n == '3':
+        string = "TRAIN"
+    elif n == '6':
+        string = "ERR: not in use"
+    elif type == '6':
+        string = "METRO"
+    elif type == '7':
+        string = "FERRY"
+    else:
+        return 0
+    return string
+
+def _get_transportation_type(start, end, time1):
     reittiopas = ReittiopasAPI()
-    if coords != None:
-        size = len(coords)
-        if size > 0:
-            start = coords[1]
-            end = coords[-1]
-            result = reittiopas.get_route_information(start, end, coords, time1)
+    walk_cost=10.0
+    change_margin = 1.0
+    if start != None and end != None:
+        result = reittiopas.get_route_information(start, end, time1, walk_cost, change_margin)
+        
+        logger.debug(result)
+        
+        if result == "":
+            return "","car"
+        else:
+            #determine public transport
+            #trip = json.dumps(result)
+            transport = ""
+            code = ""
+            type = ""
+            for r in range(0,len(result)):
+                for j in range(0,len(result[r])):
+                    segments = result[r][j]
+                    for segment in segments["legs"]:
+                        if "code" in segment and "type" in segment and segment["type"] != "walk":
+                            code = str(segment["code"])
+                            if len(code) > 1:
+                                transport = code[1:]
+                                logger.debug("%s,%s" % (code[0], segment["type"]))
+                                type = interpret_type_of_transport(code[0], segment["type"])
+                                if transport != "" and type != "":
+                                    return transport, type
+                            
+            if transport == "" and type == "":
+                return "","car"                
             
-            if result == "":
-                return "car"
-            else:
-                #determine public transport
-                transport = ""
-                
-                return transport
+            return transport, type
+        
+def process_results(result):
+    
+    trips = []
+    features = Features()
+    
+    for r in range(0,len(result)):
+        for j in range(0,len(result[r])):
+            trip = features._process_reittiopas_results_to_features(result[r][j])
+            trips.append(trip)
+            
+    return trips
+    
+    #Array of routes, get route
+    '''
+    type = ""
+    transport_type=""
+    transport=""
+    
+    features = []
+    for r in range(0,len(result)):
+        #route
+        for j in range(0,len(result[r])):
+            segments = result[r][j]
+            if "length" in segment:
+                length = str(segment["length"])
+                avg_km = float(int(length) / 1000)
+            if "duration" in segment:
+                time = str(segment["duration"])
+                hours = float(int(time) / 3600)
+                avg_speed = float(feature.get_km() / hours)
+            for segment in segments["legs"]:
+                feature = Feature()
+                feature.set_type("LineString")
+                #set up feature coords
+                if "locs" in segment:
+                    #coordinates nodes
+                    coords = []
+                    for node in segment["locs"]:
+                        x=""
+                        y=""
+                        if "coord" in node:
+                            coord = node["coord"]
+                            if "x" in coord:
+                                x = coord["x"]
+                            if "y" in coord:
+                                y = coord["y"]
+                            c = "%s,%s" % (x,y)
+                        coords.append(c)
+                    feature.set_coords(coords)
+                if "type" in segment:
+                    activity = segment["type"]
+                    feature.set_activity(activity)
+                if "length" in segment:
+                    length = str(segment["length"])
+                    kms = float(int(length) / 1000)
+                    feature.set_km(kms)
+                if "duration" in segment:
+                    time = str(segment["duration"])
+                    hours = float(int(time) / 3600)
+                    speed = float(feature.get_km() / hours)
+                    feature.set_speed(speed)
+                if "code" in segment:
+                    code = str(segment["code"])
+                    if len(code) > 1:
+                        transport = code[1:]
+                        type = interpret_type_of_transport(code[0], segment["type"])
+                        if transport != "" and type != "":
+                            feature.set_transport(transport)
+                            feature.set_transport_type(type)
+                            '''

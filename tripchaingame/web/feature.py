@@ -19,6 +19,7 @@ class Feature:
         self._time = ""
         self._activity = ""
         self._type_of_transport = ""
+        self._transport = ""
         
     def get_coords(self):
         return self._coords
@@ -41,7 +42,7 @@ class Feature:
     def get_co2(self):
         return self._co2
     
-    def set_co2(self, c02):
+    def set_co2(self, co2):
         self._co2 = co2
         
     def get_calories(self):
@@ -69,29 +70,49 @@ class Feature:
         self._activity = activity
         
     def get_transport(self):
-        return self._activity
+        return self._transport
     
-    def set_transport(self, activity):
-        self._activity = activity
+    def set_transport(self, transport):
+        self._transport = transport
+        
+    def get_transport_type(self):
+        return self._type_of_transport
+    
+    def set_transport_type(self, type):
+        bus = 73
+        car = 171
+        suomenlinna_ferry = 389
+        
+        self._type_of_transport = type
+        co2 = 0.00
+        
+        if type == "BUS":
+            co2 = float(bus * self.get_km())
+        elif type == "car":
+            co2 = float(car * self.get_km())
+        elif type == "FERRY":
+            co2 = float(suomenlinna_ferry * self.get_km())
+            
+        self.set_co2(co2)
         
     def __len__(self):
         return len(self._address)
     
     def __eq__(self, other):
-        return self.get_address() == other.get_address()
+        return self.get_coords() == other.get_coords()
     
     def __str__(self):
-        str = "%s (%s km in %s), %s" % (self.get_type(), self.get_km(), self.get_time(), self.get_activity())
+        str = "%s (%s km in %s), %s (using %s)" % (self.get_type(), self.get_km(), self.get_time(), self.get_activity(), self.get_transport())
         return str
     
     def generate_geojson(self):
-        geos = []
+        #geos = []
         features = []
         poly = {
                 'type': self._type,
                 'coordinates': self._coords,
         }
-        geos.append(poly)
+        #geos.append(poly)
         
         props = {
             'activity': self._activity,
@@ -99,16 +120,17 @@ class Feature:
             'distance': self._km,
             'calories': self._calories,
             'co2': self._co2,
+            'transportMode' : self.get_transport_type(),
+            'transport' : self.get_transport(),
         }
         
         geometries = {
-            'geometries': geos,
             'type': 'Feature',
+            'geometry': poly,
             'properties' : props
                       }
-        features.append(geometries)
         
-        return features
+        return geometries
     
     def find_element(self, element):
         try:

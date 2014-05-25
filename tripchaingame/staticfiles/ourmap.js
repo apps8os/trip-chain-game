@@ -1,13 +1,41 @@
 	var map;
+	var point_location=0;
+	var point_location_result_id = "";
+
+	//Setting on/off mode for pointing locations on map
+	function map_pointer_switch(id){
+     	    if (point_location==0){
+		point_location=1;
+		point_location_result_id=id;
+	    } else {
+		point_location=0;
+		point_location_result_id="";
+	    }
+	}
+
 	$(function() {
 			$( "#key" ).draggable();
 		});
         $(function() {
 			$( "#start_date" ).datepicker();
 		});
-		$(function() {
+	$(function() {
 			$( "#end_date" ).datepicker();
 		});
+
+	$(function() {
+			$( "#trip_date" ).datepicker();
+		});
+
+	function from_me(coords, id){
+	    if(coords != "null"){
+		var s= document.getElementById(id);
+		s.value = coords;
+            } else {
+		var s= document.getElementById(id);
+		s.value = lon+","+lat;
+            }
+	}
 
         //Vector visibility toggle
         $(document).ready(function(){
@@ -72,7 +100,8 @@
           console.warn('ERROR(' + err.code + '): ' + err.message);
           init();
         };
-        
+
+        //Styles for different kind of vectors
         var vehicleLine = {
                 strokeColor: "blue",
                 strokeWidth: 8,
@@ -109,18 +138,11 @@
 		icon = known_place_icon + type + ".png";
 	    }
             var styleLocation = {
-                //fillColor : 'black',
-		//fillOpacity : 0.9,                    
-		//strokeColor : "#ee9900",
-		//strokeOpacity : 1,
-		//strokeWidth : 1,
-		//pointRadius : 7,
 		externalGraphic: icon,
 		cursor: 'pointer',
 		graphicWidth: 32,
 		graphicHeight: 32,
 		fillOpacity: 1
-		//background: url("img/close.gif") no-repeat;
             };
 	    return styleLocation;
 	}
@@ -240,7 +262,6 @@
         {
             lat = position.coords.latitude;
             lon = position.coords.longitude;
-	    	//console.log("changed pos "+lon+":"+lat);
 	    	init();
         }
 
@@ -255,7 +276,7 @@
 		markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat),icon));
 		markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(lon,lat),icon.clone()));
 
-		return marker;
+		return markers;
         }
 
 	//Init popups for places
@@ -335,6 +356,13 @@
                     
                     console.log("You clicked near " + lonlatclone.lat + " N, " +
                                               + lonlatclone.lon + " E");
+
+		    if (point_location==1){
+			var s = document.getElementById(point_location_result_id);
+			s.value = lonlatclone.lon+","+lonlatclone.lat;
+			point_location=0;
+			//TODO Add markers on click
+		    }
                 }
 
             	});
@@ -363,9 +391,11 @@
                 map.addLayer(osm);
                 var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 		console.log("lonlat: "+lon+":"+lat);
+
 		var markers = new OpenLayers.Layer.Markers( "Markers" );
 		map.addLayer(markers);
 		markers.addMarker(new OpenLayers.Marker(lonLat));
+		
                 map.setCenter (lonLat, zoom);
 
 		//Activate click event to point a location from the map
@@ -380,9 +410,9 @@
 
 		var features = getFeaturesForPopup(map.getProjectionObject())
 
-
 		//Popup for trips
-		trip_feature = new OpenLayers.Layer.Vector("Trips", 
+		if(trips.length > 0){
+			trip_feature = new OpenLayers.Layer.Vector("Trips", 
 			{
 			  styleMap:  new OpenLayers.StyleMap(style),
 			  rendererOptions: { zIndexing: true },
@@ -408,6 +438,7 @@
 			    }
 			  }
 			});
+		}
 
 		//Popups for places
 		if(features.length > 0){
@@ -446,8 +477,7 @@
 			    selector.unselectAll();
 			}
 
-			map.addLayer(locations);
-			map.addControl(selector);
+			map.addControl(selector);	
 		}
 
 
@@ -471,8 +501,6 @@
 		    }
 	       	    map.addControl(trip_selector);
 
-		    //Adding places on top
-	       	    map.addLayer(locations);
 		    var vecLyr = map.getLayersByName('Trips')[0];
 		    //map.raiseLayer(vecLyr, map.layers.length);
 		    map.setLayerIndex(vecLyr, 0);
@@ -506,8 +534,14 @@
 				//console.log(featureCollection);
 		    }
 		}
-            };
+		//Adding places on top
+		if(locations) {
+		    map.addLayer(locations);
+		}
+		
+            }
             //$('#key').draggable();
+		
 	        var signInCallback = function (result) {
                 if(result['g-oauth-window']) {
 		            $('#code').attr('value', result['code']);

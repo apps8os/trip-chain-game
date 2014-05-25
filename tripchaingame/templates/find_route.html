@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block content %}
+		<!-- 
+		{{places|safe}}
+		-->
+		
+		<style type="text/css" media="screen">
+		.known_place {
+			background: url("{{STATIC_URL}}known.png") no-repeat;
+		}
+		
+		.home_place {
+			background: url("{{STATIC_URL}}home-hm.png") no-repeat;
+		}
+		
+		
+		.home_button{
+		    //background: url("{{STATIC_URL}}known.png") no-repeat left top;
+		    cursor:pointer;
+		    border:none;
+		    width: 32px;
+		}
+		
+		/*.home_button:hover  /* use Dot here */
+		{   
+		    background: url("{{STATIC_URL}}unknown.png") no-repeat left top;
+		}*/
+		
+        </style>
+		
+        <script type="text/javascript" charset="utf-8">
+        		var known_place_icon = null;
+        		{% if user.is_authenticated %}
+        			var places = {{places|safe}};
+        			var locs = ["SH", "LB", "HM", "WK", "SC"];
+        			locs_map=new Array();
+					locs_map = {
+					    'SH': 'Shop',
+					    'LB': 'Library',
+					    'HM': 'Home',
+					    'WK': 'Work',
+					    'SC': 'School'
+					};
+					
+					var trip_data = {{trip_data|safe}};
+					console.log(trip_data);
+        			console.log({{places|safe}});
+        			
+        			known_place_icon = '{{STATIC_URL}}';
+        			
+        			
+        		{% else %}
+        			var places =0;
+        		{% endif %}
+                var trips = {{trips|safe}};
+                var new_routes = {{new_routes|safe}};
+                console.log(new_routes);
+                
+        function center_map(place_lon, place_lat){
+        	if(map){
+        		map.setCenter(new OpenLayers.LonLat(place_lon, place_lat).transform('EPSG:4326', 'EPSG:3857'), zoom);
+        	} else {
+        		console.log("map is not defined");
+        	}
+        }
+                
+	function get_template(feature){
+		var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";
+		var token = "{% csrf_token %}";
+		var default_template = "<input type='hidden' name='address' id='address' value='"+feature.attributes.Address+"'/><div style='font-size:.8em'>Coordinates: " + feature.attributes.Coordinates +"<br>Address: " + feature.attributes.Address+"</div>";
+		var size = locs.length;
+		var par_address = "&quot;"+feature.attributes.Address+"&quot;";
+		var select_template = "<select id='location_type' onChange='do_save_location_type("+par_address+");'><option value='UN'>Select location</option>";
+		for(var i = 0; i < size; i++) {
+			if(feature.attributes.type == locs[i]) {
+				select_template = select_template+"<option value='"+locs[i]+"' selected>"+locs_map[locs[i]]+"</option>";
+			} else {
+				select_template = select_template+"<option value='"+locs[i]+"'>"+locs_map[locs[i]]+"</option>";
+			}
+		}
+		select_template = select_template+"</select></form>";	
+		var template = "";
+			
+		template = form_template+token+default_template+select_template;
+		return template;
+	}
+	
+	function get_template_trip(feature){
+		var form_template = "<form action=&quot;.&quot; method=&quot;post&quot;>";
+		var token = "{% csrf_token %}";
+		var default_template = "<input type='hidden' name='address' id='address' value='"+feature.attributes.Address+"'/><div style='font-size:.8em'>Coordinates: " + feature.attributes.Coordinates +"<br>Address: " + feature.attributes.Address+"</div>";
+		var size = locs.length;
+		var par_address = "&quot;"+feature.attributes.Address+"&quot;";
+		var select_template = "<select id='location_type' onChange='do_save_location_type("+par_address+");'><option value='UN'>Select location</option>";
+		for(var i = 0; i < size; i++) {
+			if(feature.attributes.type == locs[i]) {
+				select_template = select_template+"<option value='"+locs[i]+"' selected>"+locs_map[locs[i]]+"</option>";
+			} else {
+				select_template = select_template+"<option value='"+locs[i]+"'>"+locs_map[locs[i]]+"</option>";
+			}
+		}
+		select_template = select_template+"</select></form>";	
+		var template = "<p>Hello World</p><b>${.activity}</b>";
+			
+		//template = form_template+token+default_template+select_template;
+		return template;
+	}
+	
+	function get_csrf_token() {
+		return '{{csrf_token}}';
+	}
+	
+
+        
+        </script>
+<!--script src="http://www.openlayers.org/api/OpenLayers.js"></script-->
+	<script src="{{STATIC_URL}}OpenLayers-2.13.1/OpenLayers.js"></script>
+    <script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js" type="text/javascript" charset="utf-8"></script>
+    <script src="{{STATIC_URL}}ourmap.js"></script>
+    <script src="{{STATIC_URL}}ajax.js"></script>
+
+        </head>
+        <body onLoad="getLocation()">
+        	<div id="content">
+        	<div id="header">
+        		<div class="line">
+	                <!--div id="headerContent"-->
+	                <form id="google-plus" method="post" action="{% url 'social:complete' "google-plus" %}">{% csrf_token %}
+	                    <input id="at" type="hidden" name="access_token" value=""/>
+	                    <input id="code" type="hidden" name="code" value=""/>
+	                </form>
+	                {% if not user.is_authenticated %}
+	                    <div id="signinButton" style="padding: 0.5%;">
+	
+	                               <span class="g-signin"
+	                                     data-scope="{{ plus_scope }}"
+	                                     data-clientid="{{ plus_id }}"
+	                                     data-redirecturi="postmessage"
+	                                     data-accesstype="online"
+	                                     data-cookiepolicy="single_host_origin"
+	                                     data-callback="signInCallback">
+	                               </span>
+	                    </div></div>
+	                {% else %}
+	                    <div class="helloText" style="color: #FFFFFF;"> Hi, {{ user.get_full_name }}!</div>
+	                    <form action="/logout">
+	                        <input id="submit" type="submit" value="Logout">
+	                    </form>
+                </div>
+                <div class="line">
+                	{% if user.is_authenticated %}
+                   	<input type="hidden" id="uid" value="{{uid}}">
+                   		{% if places != None %}
+                   			{% for place in places_objects %}
+                   				{% if places != "UN" %}
+                   					<input type="image" src="{{STATIC_URL}}{{place.type}}.png" class="home_button" title="Center map on {{place.address}}" onclick="center_map({{place.lon}}, {{place.lat}})" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
+                   				{% endif %}
+                  			{% endfor %}
+                  		{% endif %}
+                  	{% endif %}
+                </div>
+                {% endif %}
+				<!--/div-->
+        	</div>
+	            <div id="map">
+	            </div>
+	            <div id="key">
+	            	<span class="plaintextHeader"> Vector visibility setup </span>
+					<span class="plaintext">
+						<input name="locations" type="checkbox" class="newstext" id="locations" checked>
+						Places
+					</span>
+					
+					{% if user.is_authenticated %}
+					
+					<form method="POST">
+					    {% csrf_token %}
+					    Select dates: <input type="text" name="start_date" style="width:80px" id="start_date" value="{{start_date}}"> - 
+					    <input type="text" name="end_date" style="width:80px" id="end_date" value="{{end_date}}">
+					    <input type="submit" value="Search" id="submit" >
+					</form>
+					{% endif %}
+					<span class="plaintextHeader"> Trip setup </span>
+	            	<span class="plaintext">
+						<input name="trip" type="checkbox" class="newstext" id="trip"  checked>
+						Trips
+					</span>
+					<form method="POST">
+					    {% csrf_token %}
+					    <div class="line">
+					    FROM: <input type="text" name="start_place" style="width:80px" id="start_place" value="{{start_place}}"> 
+					    <img src="{{STATIC_URL}}OpenLayers-2.13.1/img/marker.png" onclick="from_me('null', 'start_place'); this.src='{{STATIC_URL}}OpenLayers-2.13.1/img/marker-blue.png'">
+				    	{% if user.is_authenticated %}
+	                   	<input type="hidden" id="uid" value="{{uid}}">
+	                   		{% if places != None %}
+	                   			{% for place in places_objects %}
+	                   				{% if places != "UN" %}
+	                   					<img src="{{STATIC_URL}}{{place.type}}.png" class="home_button" title="Find routes from {{place.address}}" onclick="from_me('{{place.lon}},{{place.lat}}', 'start_place'); this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
+	                   				{% endif %}
+	                  			{% endfor %}
+	                  		{% endif %}
+	                  	{% endif %} </div>
+	                  	<img src="{{STATIC_URL}}known.png" class="home_button" onclick="map_pointer_switch('start_place');"><br><br>
+	                  	<div class="line">
+					    TO: <input type="text" name="end_place" style="width:80px" id="end_place" value="{{end_place}}"> <br>
+					    <img src="{{STATIC_URL}}OpenLayers-2.13.1/img/marker.png" onclick="from_me('null', 'end_place')">
+				    	{% if user.is_authenticated %}
+	                   	<input type="hidden" id="uid" value="{{uid}}">
+	                   		{% if places != None %}
+	                   			{% for place in places_objects %}
+	                   				{% if places != "UN" %}
+	                   					<img src="{{STATIC_URL}}{{place.type}}.png" class="home_button" title="Find routes from {{place.address}}" onclick="from_me('{{place.lon}},{{place.lat}}', 'end_place'); this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseover="this.src='{{STATIC_URL}}{{place.type}}-hover.png'" onmouseout="this.src='{{STATIC_URL}}{{place.type}}.png'"/>
+	                   				{% endif %}
+	                  			{% endfor %}
+	                  		{% endif %}
+	                  	{% endif %} </div> 
+	                  	<img src="{{STATIC_URL}}known.png" class="home_button" onclick="map_pointer_switch('end_place');"><br>
+					    Select date: <input type="text" name="trip_date" style="width:80px" id="trip_date" value="{{trip_date}}">
+					    Select time: <input type="time" name="start_time" style="width:80px" id="start_time" value="{{start_time}}">
+					    <input type="submit" value="Search" id="submit" >
+					</form>
+				</div>
+			</div>
+        </body>
+
+{% endblock %}
