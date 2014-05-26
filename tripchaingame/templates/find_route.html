@@ -119,7 +119,7 @@
 			table = table + "<tr><td><b>CO2 emissions (kg)</b></td><td>"+roundToTwo((arr[3]/1000))+" kg</td><td>"+par_co2.toFixed(2)+" kg</td></tr></table>";
 		}
 			
-		return table;//trip_totals+template;
+		return table;
 	}
 	
 	function roundToTwo(num) {    
@@ -242,6 +242,38 @@
 					    Select time: <input type="time" name="start_time" style="width:180px" id="start_time" value="{{start_time}}">
 					    <input type="submit" value="Search" id="submit" >
 					</form>
+					
+					{% if features %}
+						<table>
+							<tr class="header_result">
+								<td></td>
+								<td>Route</td>
+								<td>Distance</td>
+								<td>Duration</td>
+								<td>Average speed</td>
+								<td>CO2 emissions</td>
+							</tr>
+						{% for fs in features %}
+							<tr class="values_result">
+								<td>#{{ forloop.counter }}</td>
+								<td>
+									{% for feature in fs.get_features %}
+										<!-- {{feature.get_activity}} -->
+									 	{% ifequal feature.get_activity "in-vehicle" %}
+									 		{{feature.get_transport}} ({{feature.get_transport_type}}),
+									 	{% else %}
+									 		{{feature.get_activity}},
+									 	{% endifequal %}
+									{% endfor %}
+								</td>
+								<td>{{fs.km}} km</td>
+								<td>{{fs.time}} h</td>
+								<td>{{fs.speed}} km/h</td>
+								<td>{{fs.co2}} kg</td>
+							</tr>
+						{% endfor %}
+						</table>
+					{% endif %}
 				</div>
 			</div>
         </body>

@@ -10,6 +10,15 @@
 	display: inline-block;
 }
 
+.value_result{
+	font-size: 0.7em;
+	color: white;
+}
+.header_result{
+	font-size: 1.0em;
+	color: white;
+	font-weight:bold;
+}
 
 .menu_button {
     background-color: black;
@@ -137,8 +146,8 @@ p.thought:after
 				position: relative;
 			 }
 			#key {
-			    height: 240px;
-			    width: 360px;
+			    height: 350px;
+			    width: 400px;
 			    position: absolute;
 			    left: 80%;
 			    margin-left: -150px;

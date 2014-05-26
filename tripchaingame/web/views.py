@@ -286,7 +286,7 @@ def route_analysis_view(request):
         
         logger.warn("Starting trip json analysis")
         
-        trips = Trip.objects.filter(user_id=uid)
+#         trips = Trip.objects.filter(user_id=uid)
         _modify_trip(trips)
         
         if points != None:
@@ -484,7 +484,7 @@ def _modify_trip(trips_json):
     
     for trip in trips_json:
         #trip time
-        if bool(trip.detailed_trip) == True:
+        if bool(trip.detailed_trip) == False:
             trip_time = 0
             kms = None
             v = 0

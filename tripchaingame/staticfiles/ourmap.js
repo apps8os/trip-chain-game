@@ -181,7 +181,8 @@
                 fillOpacity: 0.7, 
 		strokeOpacity: 0.6,
                 strokeColor: colors.vehicle,
-		strokeWidth: 5
+		strokeWidth: 5,
+		label: "${transport}"
 	    } 
 	});
         var walkRule = new OpenLayers.Rule({

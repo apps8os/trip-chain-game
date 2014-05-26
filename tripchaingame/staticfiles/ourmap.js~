@@ -181,7 +181,8 @@
                 fillOpacity: 0.7, 
 		strokeOpacity: 0.6,
                 strokeColor: colors.vehicle,
-		strokeWidth: 5
+		strokeWidth: 5,
+		label: "${activity}"
 	    } 
 	});
         var walkRule = new OpenLayers.Rule({
@@ -445,7 +446,7 @@
 				    //feature.geometry.getBounds().getCenterLonLat(),
                                     OpenLayers.LonLat.fromString(feature.geometry.getVertices()[0].toShortString()),
 				    null,
-				    "<p>Hello World</p><b>"+feature.attributes.activity +" : "+ feature.attributes.distance +" km</b>",//get_template_trip(feature),
+				    getTripSegmentTemplate(feature),//get_template_trip(feature),
 				    null,
 				    true, onPopupCloseTrip
 				);

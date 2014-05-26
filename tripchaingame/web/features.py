@@ -18,6 +18,15 @@ class Features:
         self._time = ""
         self._date = ""
         
+    def km(self):
+        return "%.2f" % (self._km)
+    def time(self):
+        return "%.2f" % (self._time)
+    def speed(self):
+        return "%.2f" % (self._speed)
+    def co2(self):
+        return "%.2f" % (self._co2/1000)
+        
     def get_features(self):
         return self._features
     
@@ -55,10 +64,10 @@ class Features:
         self._date = date
         
     def __len__(self):
-        return len(self._address)
+        return len(self.get_features())
     
     def __eq__(self, other):
-        return self.get_coords() == other.get_coords()
+        return self.get_features() == other.get_features()
     
     def _build_geojson_trip(self):
         geojson_geometry = []

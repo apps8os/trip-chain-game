@@ -10,17 +10,14 @@
 	display: inline-block;
 }
 
-.home_button{
-    background:url(/static/known.png) no-repeat;
-    cursor:pointer;
-    border:none;
-    width:100px;
-    height:100px;
+.value_result{
+	font-size: 0.7em;
+	color: white;
 }
-
-.home_button:active  /* use Dot here */
-{   
-    background:url(/static/unknown.png) no-repeat;
+.header_result{
+	font-size: 1.0em;
+	color: white;
+	font-weight:bold;
 }
 
 .menu_button {
@@ -149,8 +146,8 @@ p.thought:after
 				position: relative;
 			 }
 			#key {
-			    height: 240px;
-			    width: 360px;
+			    height: 290px;
+			    width: 380px;
 			    position: absolute;
 			    left: 80%;
 			    margin-left: -150px;
