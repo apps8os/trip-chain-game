@@ -146,8 +146,8 @@ p.thought:after
 				position: relative;
 			 }
 			#key {
-			    height: 290px;
-			    width: 380px;
+			    height: 350px;
+			    width: 400px;
 			    position: absolute;
 			    left: 80%;
 			    margin-left: -150px;
