@@ -27,7 +27,8 @@ urlpatterns = patterns('',
     url(r'^logout/$', logout_view),
     url(r'^save_location/$', save_location),
     url('', include('social.apps.django_app.urls', namespace='social')),
-    url(r'^roads', road_segment)
+    url(r'^roads', road_segment),
+    url(r'^activities', activities),
 )
 
 
