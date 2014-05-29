@@ -19,15 +19,10 @@ class ReittiopasAPI:
         
     def get_reverse_geocode(self, coordinates):
         result = LocationPoint()
-        parameters = {'request': 'reverse_geocode', 
-                      'coordinate': coordinates, 
-                      'epsg_in':self.__epsg_in, 
-                      'epsg_out':self.__epsg_out,
-                      'user':self.__user,
-                      'pass': self.__passwd}
-        json_response = requests.get("http://api.reittiopas.fi/hsl/prod/", params=parameters)
+        json_response = self.execute_reverse_geocode(coordinates)
         if json_response.status_code == requests.codes.ok:
             try:
+                logger.debug(json_response.url)
                 r = json.dumps(json_response.json())
                 routes = json.loads(r)
                 for route in routes:
@@ -43,7 +38,43 @@ class ReittiopasAPI:
             
         return result
     
-    def get_geocode(self, address):
+    def get_reverse_geocode_city(self, coordinates):
+        city = ""
+        json_response = self.execute_reverse_geocode(coordinates)
+        if json_response.status_code == requests.codes.ok:
+            try:
+                logger.debug(json_response.url)
+                r = json.dumps(json_response.json())
+                routes = json.loads(r)
+                for route in routes:
+                    city = str(route["city"])
+            except ValueError:
+                logger.debug(json_response.url)
+                logger.warn("Unknown location %s" % str(coordinates))
+        else:
+            logger.warn(json_response.status_code)
+            json_response.raise_for_status()
+            
+        return city
+    
+    def execute_reverse_geocode(self, coordinates):
+        parameters = {'request': 'reverse_geocode', 
+                      'coordinate': coordinates, 
+                      'epsg_in':self.__epsg_in, 
+                      'epsg_out':self.__epsg_out,
+                      'user':self.__user,
+                      'pass': self.__passwd}
+        json_response = requests.get("http://api.reittiopas.fi/hsl/prod/", params=parameters)
+        return json_response
+    
+    def is_empty(self, string):
+        if string != None:
+            if string != 0:
+                if len(string) > 0:
+                    return False
+        return True
+    
+    def get_geocode(self, address, city_coordinates):
         result = LocationPoint()
         parameters = {'request': 'geocode', 
                       'key': address, 
@@ -55,16 +86,24 @@ class ReittiopasAPI:
         json_response = requests.get("http://api.reittiopas.fi/hsl/prod/", params=parameters)
         if json_response.status_code == requests.codes.ok:
             try:
+                logger.debug(json_response.url)
                 r = json.dumps(json_response.json())
                 routes = json.loads(r)
+                size = len(routes)
+                if size > 1:
+                    if self.is_empty(city_coordinates) == False:
+                        city = self.get_reverse_geocode_city(city_coordinates)
                 for route in routes:
                     r = json.dumps(route["matchedName"])
                     result.set_address(r.replace('"',""))
                     coordinates = str(route["coords"])
                     result.set_coords(coordinates)
+                    if self.is_empty(city) == False and city == str(route["city"]):
+                        return result
+                    
             except ValueError:
                 logger.debug(json_response.url)
-                logger.warn("Unknown location %s" % str(coordinates))
+                logger.warn("Unknown location %s" % str(address))
         else:
             logger.warn(json_response.status_code)
             json_response.raise_for_status()

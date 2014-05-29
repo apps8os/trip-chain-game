@@ -51,9 +51,10 @@ def is_number(s):
     return True
 
 def is_empty(string):
-    if string != None:
-        if len(string) > 0:
-            return False
+    if string != None or is_number(string) == False:
+        if string != 0:
+            if len(string) > 0:
+                return False
     return True
 
 
@@ -75,6 +76,9 @@ def view_find_route(request):
         start_date=""
         start_time=""
         trip_date =""
+        start_place = ""
+        end_place = ""
+        my_place=""
         if 'trip_date' in request.POST and is_empty(request.POST['trip_date']) == False: 
             start_date=str(request.POST['trip_date'])
             if 'start_time' in request.POST and is_empty(request.POST['start_time']) == False:
@@ -92,12 +96,18 @@ def view_find_route(request):
         if 'start_place' in request.POST and 'end_place' in request.POST:
             start_place=str(request.POST['start_place'])
             end_place=str(request.POST['end_place'])
+        if 'my_place' in request.POST:
+            my_place=str(request.POST['my_place'])
             #check if numeric coordiates in form lon,lat
             #if not search location, assume that it's an address
             #in case of an error return error message
             
         context['trip_date'] = trip_date
         context['start_time'] = start_time
+        
+        logger.debug("Start: %s" % start_place)
+        logger.debug("End: %s" % end_place)
+        logger.debug("Me: %s" % my_place)
         
         if len(start_place)>0 and len(end_place)>0:
             
@@ -106,26 +116,33 @@ def view_find_route(request):
             reittiopas = ReittiopasAPI()
             walk_cost=10.0
             change_margin = 1.0
-            if is_empty(start_place) == False and is_empty(end_place) == False:
+            if is_empty(start_place) == False and is_empty(end_place) == False and is_empty(my_place) == False:
                 
                 start = start_place.split(',')
                 end = end_place.split(',')
-                            
+                
+                
                 #Get start and en locations if coordinates
                 if contains_coordinates(start) == True:
                     start_location = reittiopas.get_reverse_geocode(start_place)
                 else:
-                    start_location = reittiopas.get_geocode(start_place)
+                    start_location = reittiopas.get_geocode(start_place, my_place)
                 if contains_coordinates(end) == True:
                     end_location = reittiopas.get_reverse_geocode(end_place)
                 else:
-                    end_location = reittiopas.get_geocode(end_place)
+                    end_location = reittiopas.get_geocode(end_place, my_place)
                     
                 logger.debug("Start point: %s" % start_location)
                 logger.debug("End point: %s" % end_location)
                 
-                context["start_place"] = start_location.get_address()
-                context["end_place"] = end_location.get_address()
+                if is_empty(start_location.get_address()) == False:
+                    context["start_place"] = start_location.get_address()
+                else:
+                    context["start_place"] = start_place
+                if is_empty(end_location.get_address()) == False:
+                    context["end_place"] = end_location.get_address()
+                else:
+                    context["end_place"] = end_place
                     
                 start_coords = start_location.pop_coords()
                 end_coords = end_location.pop_coords()
@@ -164,6 +181,7 @@ def view_find_route(request):
                     
                 else:
                     routes = "{}"
+                    
             
             if request.user.is_authenticated():
                 places = PlaceRecognition()

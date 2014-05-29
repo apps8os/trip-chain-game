@@ -211,7 +211,8 @@
 					<form method="POST">
 					    {% csrf_token %}
 					    <div class="line">
-					    FROM: <input type="text" name="start_place" style="width:180px" id="start_place" value="{{start_place}}"> 
+					    <input type="hidden" name="my_place" id="my_place" value="{{my_place}}"/>
+					    FROM: <input type="text" name="start_place" style="width:180px" id="start_place" value="{{start_place}}"/> 
 					    <img src="{{STATIC_URL}}OpenLayers-2.13.1/img/marker.png" class="coordinate_button" title="Pin point start point from map" onclick="from_me('null', 'start_place'); this.src='{{STATIC_URL}}OpenLayers-2.13.1/img/marker-blue.png'">
 				    	{% if user.is_authenticated %}
 	                   	<input type="hidden" id="uid" value="{{uid}}">

@@ -182,7 +182,7 @@
 		strokeOpacity: 0.6,
                 strokeColor: colors.vehicle,
 		strokeWidth: 5,
-		label: "${activity}"
+		label: "${transport}"
 	    } 
 	});
         var walkRule = new OpenLayers.Rule({
@@ -417,6 +417,8 @@
 		var markers = new OpenLayers.Layer.Markers( "Markers" );
 		map.addLayer(markers);
 		markers.addMarker(new OpenLayers.Marker(lonLat));
+
+		document.getElementById("my_place").value = lon+","+lat
 		
                 map.setCenter (lonLat, zoom);
 

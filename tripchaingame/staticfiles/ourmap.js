@@ -417,6 +417,8 @@
 		var markers = new OpenLayers.Layer.Markers( "Markers" );
 		map.addLayer(markers);
 		markers.addMarker(new OpenLayers.Marker(lonLat));
+
+		document.getElementById("my_place").value = lon+","+lat;
 		
                 map.setCenter (lonLat, zoom);
 
