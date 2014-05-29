@@ -238,17 +238,36 @@ def view_find_route(request):
 @login_required
 def road_segment(request):
     uid = _uid_from_user(request.user)
-    trips = Trip.objects.filter(user_id=uid, client_version="0.8").order_by('-started_at')[:5]
+    trips = Trip.objects.filter(user_id=uid, client_version="0.8").order_by('-started_at')[:50]
 
     body = ""
     for trip in trips:
         body += "<h2>" + str(trip.started_at) + "</h2><ol>"
+
+        if not trip.roads:
+            continue
 
         for rs in trip.roads:
             if rs.addresses:
                 body += "<li>" + rs.street + ": " \
                         + str([int(a.house_number) for a in rs.addresses if a.house_number]) \
                         + "</li>"
+
+        body += "</ol>"
+
+    return HttpResponse(body)
+
+@login_required
+def activities(request):
+    uid = _uid_from_user(request.user)
+    trips = Trip.objects.filter(user_id=uid, client_version="0.8").order_by('-started_at')[:5]
+
+    body = ""
+    for trip in trips:
+        body += "<h2>" + str(trip.started_at) + "</h2><ol>"
+
+        for a in trip.activities:
+            body += "<li>" + a.value + "</li>"
 
         body += "</ol>"
 
