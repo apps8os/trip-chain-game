@@ -51,7 +51,7 @@ def is_number(s):
     return True
 
 def is_empty(string):
-    if string != None or is_number(string) == False:
+    if string != None and is_number(string) == False:
         if string != 0:
             if len(string) > 0:
                 return False
