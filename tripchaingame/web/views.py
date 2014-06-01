@@ -293,6 +293,33 @@ def locations_view(request):
         return view_trips(request)
 
 @login_required
+def do_full_analysis_view(request):
+    context = {}
+    if request.user.is_authenticated():
+        places = PlaceRecognition()
+        uid = _uid_from_user(request.user)
+        trips = None
+        
+        trips = Trip.objects.filter(user_id=uid)
+        
+        points = places.point_analysis(trips, uid)
+        points = ""
+        context['places'] = points
+        context['uid'] = uid
+        
+        logger.warn("Starting trip json analysis")
+        
+#         trips = Trip.objects.filter(user_id=uid)
+        _modify_trip(trips)
+        
+        if points != None:
+            logger.debug("places = %d" % len(points))
+        else:
+            logger.debug("places = 0")
+            
+    return HttpResponse(context['places'], status=200)
+
+@login_required
 def route_analysis_view(request):
     context = {}
     if request.user.is_authenticated():
@@ -537,7 +564,7 @@ def _modify_trip(trips_json):
             feature_array = items["features"]
             if len(feature_array) > 0:
                 last = len(feature_array)
-                km, features = _get_location_coordinates(feature_array, last, trip.created_at, trip.started_at)
+                km, features = _get_location_coordinates(feature_array, last, trip.created_at, trip.started_at, trip.locations)
             
             #travel mode recognition
             _do_travel_recognition(features, trip.started_at)
@@ -666,7 +693,7 @@ def get_trip_segment_time(feature_array, last, end_time, i, start_time):
             time = _calculate_trip_time(time1, time2)
     return time
 
-def _get_location_coordinates(feature_array, last, end_time, start_time):
+def _get_location_coordinates(feature_array, last, end_time, start_time, locations):
     features = []
     present_location = None
     previous_location = None
@@ -675,6 +702,7 @@ def _get_location_coordinates(feature_array, last, end_time, start_time):
     activity_distances = dict()
     ed_tyyppi = ""
     tyyppi = ""
+    first_location_index=0
     
     kms = float(6373)
     for i in range(0,last):
@@ -690,7 +718,18 @@ def _get_location_coordinates(feature_array, last, end_time, start_time):
         tyyppi = feature_array[i]['geometry']['type']
         coords = feature_array[i]["geometry"]["coordinates"]
         activity = feature_array[i]["properties"]["activity"]
+        
+        start_time = locations[first_location_index].time
         time = get_trip_segment_time(feature_array, last, end_time, i, start_time)
+
+        # append first_location_index
+    
+        if tyyppi == 'LineString':
+            first_location_index += len(coords) - 1
+        else:
+            # it is a point
+            # and location has not changed
+            pass
         
         #Setup feature
         feature.set_type(tyyppi)
