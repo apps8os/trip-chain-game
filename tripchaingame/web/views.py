@@ -51,12 +51,25 @@ def is_number(s):
     return True
 
 def is_empty(string):
-    if string != None and is_number(string) == False:
-        if string != 0:
-            if len(string) > 0:
-                return False
-    return True
-
+    try:
+        if string != None and is_number(str(string)) == False:
+            if string != 0:
+                return _check_len(string)
+        return True
+    except ValueError:
+        return False
+    except TypeError:
+        return False
+    
+def _check_len(string):
+    try:
+        if len(string) > 0:
+            return False
+        return True
+    except ValueError:
+        return False
+    except TypeError:
+        return False
 
 def contains_coordinates(start):
     start_numeric = True
